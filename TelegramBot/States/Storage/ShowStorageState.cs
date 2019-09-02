@@ -14,9 +14,7 @@ namespace TelegramBot
             InlineKeyboard = new InlineKeyboardMarkup(Funcs.GetInlineKeyboard(buttonItem));
         }
 
-        public void ActionMsg(TelegramBotClient Bot, Message message)
-        {
-        }
+        public void ActionMsg(TelegramBotClient Bot, Message message){}
 
         public async void ActionQuery(TelegramBotClient Bot, CallbackQuery callbackQuery)
         {

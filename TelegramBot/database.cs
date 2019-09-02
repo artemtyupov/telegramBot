@@ -7,9 +7,7 @@ namespace TelegramBot
         public static MySqlConnection OpenMysqlConnection(string dbName)
         {
             string connString = $@"Server=127.0.0.1;port=3306;Database={dbName};Uid=root;password=Tosha007";
-
             var conn = new MySqlConnection(connString);
-            
             return conn;
         }
 
@@ -35,6 +33,4 @@ namespace TelegramBot
             command.ExecuteNonQuery();
         }
     }
-    
-    
 }

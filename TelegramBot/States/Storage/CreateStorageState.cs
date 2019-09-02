@@ -25,6 +25,7 @@ namespace TelegramBot
                 InlineKeyboardButton.WithCallbackData("Get shared storage"),
             }
         });
+
         public async void ActionMsg(TelegramBotClient Bot, Message message)
         {
             Program.Conn.Open();
@@ -38,6 +39,7 @@ namespace TelegramBot
                 "Choose action:",
                 replyMarkup: InlineKeyboard);
         }
+
         public void ActionQuery(TelegramBotClient Bot, CallbackQuery callbackQuery){}
         
         public IState ChangeOnPrevState()
@@ -49,6 +51,5 @@ namespace TelegramBot
         {
             return InlineKeyboard;
         }
-    
     }
 }

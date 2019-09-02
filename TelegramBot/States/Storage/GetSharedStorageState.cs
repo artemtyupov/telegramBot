@@ -54,7 +54,6 @@ namespace TelegramBot
                 $"Enter share key:");
         }
         
-        
         public IState ChangeOnPrevState()
         {
             return new CMenuStorage();

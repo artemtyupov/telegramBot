@@ -47,7 +47,6 @@ namespace TelegramBot
             Console.WriteLine($"Start listening for @{me.Username}");
             Console.ReadLine();
             Bot.StopReceiving();
-
         }
 
         private static async void BotOnMessageReceived(object sender, MessageEventArgs messageEventArgs)
@@ -91,131 +90,65 @@ namespace TelegramBot
             }
             else
             {
-                context.ActionMsgContext(Bot, message);
+                if (context != null)
+                    context.ActionMsgContext(Bot, message);
             }
         }
-
 
         private static async void BotOnCallbackQueryReceived(object sender,
             CallbackQueryEventArgs callbackQueryEventArgs)
         {
+            if (context == null) return;
             var callbackQuery = callbackQueryEventArgs.CallbackQuery;
             if (callbackQuery == null) return;
             Conn.Open();
             var idUser = Funcs.GetIdUserFromUsername(callbackQuery.From.Username, Conn);
             Conn.Close();
-            switch (callbackQuery.Data)
+            EnumActions.EActions act = EnumActions.GetEnumActionFromString(callbackQuery.Data);
+            switch (act)
             {
-                case "Create storage":
+                case EnumActions.EActions.DeleteStorage:
+                case EnumActions.EActions.RenameStorage:
+                case EnumActions.EActions.ShowStorage:
+                case EnumActions.EActions.DeleteFolder:
+                case EnumActions.EActions.RenameFolder:
+                case EnumActions.EActions.ShowFolder:
+                case EnumActions.EActions.GetData:
                     context.SavePrevState();
-                    context.ChangeState(new CCreateStorageState());
+                    context.ChangeState(EnumActions.GetStateObjectFromEAction(act));
                     await Bot.DeleteMessageAsync(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId);
                     await Bot.SendTextMessageAsync(
                         callbackQuery.Message.Chat.Id,
-                        "Enter new storage name: ");
-                    break;
-                case "Delete storage":
-                    context.SavePrevState();
-                    context.ChangeState(new CDeleteStorageState());
-                    await Bot.DeleteMessageAsync(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId);
-                    await Bot.SendTextMessageAsync(
-                        callbackQuery.Message.Chat.Id,
-                        $"Choose storage to delete",
+                        EnumActions.GetStringFromEAction(act),
                         replyMarkup: context.GetInlineKeyboardFromContext(idUser));
-                    break;
-                case "Rename storage":
-                    context.SavePrevState();
-                    context.ChangeState(new CRenameStorageState());
-                    await Bot.DeleteMessageAsync(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId);
-                    await Bot.SendTextMessageAsync(
-                        callbackQuery.Message.Chat.Id,
-                        $"Choose storage to rename",
-                        replyMarkup: context.GetInlineKeyboardFromContext(idUser));
-                    break;
-                case "Show storage's":
-                    context.SavePrevState();
-                    context.ChangeState(new CShowStorageState());
-                    await Bot.DeleteMessageAsync(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId);
-                    await Bot.SendTextMessageAsync(
-                        callbackQuery.Message.Chat.Id,
-                        "Choose storage:",
-                        replyMarkup: context.GetInlineKeyboardFromContext(idUser));
-                    break;
-                case "Create folder":
-                    context.SavePrevState();
-                    context.ChangeState(new CCreateState());
-                    await Bot.DeleteMessageAsync(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId);
-                    await Bot.SendTextMessageAsync(
-                        callbackQuery.Message.Chat.Id,
-                        "Enter new folder name: ");
                     break;
 
-                case "Delete folder":
+                case EnumActions.EActions.CreateStorage:
+                case EnumActions.EActions.CreateFolder:
+                case EnumActions.EActions.AddData:
+                case EnumActions.EActions.GetSharedStorage:
                     context.SavePrevState();
-                    context.ChangeState(new CDeleteState());
+                    context.ChangeState(EnumActions.GetStateObjectFromEAction(act));
                     await Bot.DeleteMessageAsync(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId);
                     await Bot.SendTextMessageAsync(
                         callbackQuery.Message.Chat.Id,
-                        $"Choose to delete folder",
-                        replyMarkup: context.GetInlineKeyboardFromContext(idUser));
+                        EnumActions.GetStringFromEAction(act));
                     break;
-                case "Rename folder":
-                    context.SavePrevState();
-                    context.ChangeState(new CRenameState());
-                    await Bot.DeleteMessageAsync(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId);
-                    await Bot.SendTextMessageAsync(
-                        callbackQuery.Message.Chat.Id,
-                        $"Choose to rename folder",
-                        replyMarkup: context.GetInlineKeyboardFromContext(idUser));
-                    break;
-                case "Show folders":
-                    context.SavePrevState();
-                    context.ChangeState(new CShowState());
-                    await Bot.DeleteMessageAsync(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId);
-                    await Bot.SendTextMessageAsync(
-                        callbackQuery.Message.Chat.Id,
-                        "Choose folder:",
-                        replyMarkup: context.GetInlineKeyboardFromContext(idUser));
-                    break;
-                case "Add data":
-                    context.SavePrevState();
-                    context.ChangeState(new CAddDataState());
-                    await Bot.DeleteMessageAsync(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId);
-                    await Bot.SendTextMessageAsync(
-                        callbackQuery.Message.Chat.Id,
-                        "Add some data");
-                    break;
-                case "Get data":
-                    context.SavePrevState();
-                    context.ChangeState(new CGetDataState());
-                    await Bot.DeleteMessageAsync(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId);
-                    await Bot.SendTextMessageAsync(
-                        callbackQuery.Message.Chat.Id,
-                        "Choose file",
-                        replyMarkup: context.GetInlineKeyboardFromContext(idUser));
-                    break;
-                case "<- Back": 
+                    
+                case EnumActions.EActions.Back: 
                     context.ChangeOnPrevState();
                     await Bot.DeleteMessageAsync(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId);
                     await Bot.SendTextMessageAsync(
                         callbackQuery.Message.Chat.Id,
-                        "Choose action:",
+                        EnumActions.GetStringFromEAction(act),
                         replyMarkup: context.GetInlineKeyboardFromContext(idUser));
                     break;
-                case "Share storage":
+
+                case EnumActions.EActions.ShareStorage:
                     context.SavePrevState();
                     context.ChangeState(new CShareState());
                     context.ActionQueryContext(Bot, callbackQuery);
                     context.ChangeState(new CMainMenuState());
-
-                    break;
-                case "Get shared storage":
-                    context.SavePrevState();
-                    context.ChangeState(new CGetSharedState());
-                    await Bot.DeleteMessageAsync(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId);
-                    await Bot.SendTextMessageAsync(
-                        callbackQuery.Message.Chat.Id,
-                        "Enter share key: ");
                     break;
 
                 default:
@@ -224,6 +157,7 @@ namespace TelegramBot
                         context.SavePrevState();
                         context.ChangeState(new CChoosedToShowState());
                     }
+
                     context.ActionQueryContext(Bot, callbackQuery);
                     break;
             }

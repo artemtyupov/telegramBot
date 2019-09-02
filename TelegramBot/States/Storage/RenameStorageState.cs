@@ -13,6 +13,7 @@ namespace TelegramBot
             var buttonItem = Funcs.GetListStorages(idUser, Program.Conn).ToArray();
             InlineKeyboard = new InlineKeyboardMarkup(Funcs.GetInlineKeyboard(buttonItem));
         }
+
         public void ActionMsg(TelegramBotClient Bot, Message message)
         {
             Program.Conn.Open();

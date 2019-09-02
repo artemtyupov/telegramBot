@@ -24,7 +24,6 @@ namespace TelegramBot
 
         public async void ActionQuery(TelegramBotClient Bot, CallbackQuery callbackQuery)
         {
-            
             Program.Conn.Open();
             var idStorage = Funcs.GetIdStorageFromIdUser(Funcs.GetIdUserFromUsername(callbackQuery.From.Username, Program.Conn), Program.Conn);
             var idFolder = Funcs.GetIdFolderFromIdStorage(idStorage, Program.Conn);
@@ -54,10 +53,6 @@ namespace TelegramBot
                     replyMarkup: InlineKeyboard);
                 
             }
-            
-
-            
-
         }
         
         public IState ChangeOnPrevState()

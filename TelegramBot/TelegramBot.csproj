@@ -66,6 +66,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EnumActions.cs" />
     <Compile Include="States\Files\AddDataState.cs" />
     <Compile Include="Context.cs" />
     <Compile Include="States\Folders\CreateState.cs" />

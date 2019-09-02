@@ -27,6 +27,7 @@ namespace TelegramBot
                     namesFolders.Add(reader[i].ToString());
                 }
             }
+
             reader.Close();
             conn.Close();
             return namesFolders;
@@ -48,6 +49,7 @@ namespace TelegramBot
                     namesFolders.Add(reader[i].ToString());
                 }
             }
+
             reader.Close();
             conn.Close();
             return namesFolders;
@@ -68,6 +70,7 @@ namespace TelegramBot
                     namesStorages.Add(reader[i].ToString());
                 }
             }
+
             reader.Close();
             conn.Close();
             return namesStorages;
@@ -83,6 +86,7 @@ namespace TelegramBot
             {
                 idStorage = Convert.ToInt32(reader[0]);
             }
+
             reader.Close();
             return idStorage;
         }
@@ -97,6 +101,7 @@ namespace TelegramBot
             {
                 idFolder = Convert.ToInt32(reader[0]);
             }
+
             reader.Close();
             return idFolder;
         }
@@ -111,8 +116,8 @@ namespace TelegramBot
             {
                 idUser = Convert.ToInt32(reader[0]);
             }
+
             reader.Close();
-            
             return idUser;
         }
         
@@ -138,22 +143,17 @@ namespace TelegramBot
             return shareKey;
         }
 
-
         public static void Registration(string name, MySqlConnection conn)
         {
             conn.Open(); 
-            
             var sqlToInsertNewUser = $"INSERT INTO User (name) VALUES (\"{name}\")";
             var command = new MySqlCommand(sqlToInsertNewUser, conn);
             command.ExecuteNonQuery();
-
             conn.Close();
-            
         }
          
         public static bool Authorize(string name, MySqlConnection conn)
         {
-            
             conn.Open();
             var sqlName = $"Select * FROM User WHERE name = \"{name}\"";
             var command = new MySqlCommand(sqlName, conn);
@@ -188,7 +188,6 @@ namespace TelegramBot
 
         public static IEnumerable<InlineKeyboardButton[]> GetInlineKeyboard(IReadOnlyList<string> stringArray)
         {
-
             var rows = stringArray.Count / 4;
             var haveMod = false;
             var columns = 4;
@@ -198,12 +197,12 @@ namespace TelegramBot
                 rows++;
                 haveMod = true;
             }
+
             var k = 0;
             var keyboardInline = new InlineKeyboardButton[rows][];
             for (var i = 0; i < rows; i++)
             {
                 InlineKeyboardButton[] keyboardButton;
-                
 
                 if (i == rows - 1 && haveMod)
                 {

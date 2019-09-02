@@ -8,6 +8,7 @@ namespace TelegramBot
     public class CCreateState : IState
     {
         private static readonly InlineKeyboardMarkup InlineKeyboard = Program.InlKey;
+
         public async void ActionMsg(TelegramBotClient Bot, Message message)
         {   
             Program.Conn.Open();
@@ -21,10 +22,7 @@ namespace TelegramBot
                 replyMarkup: Program.InlKey);
         }
 
-        public void ActionQuery(TelegramBotClient Bot, CallbackQuery callbackQuery)
-        {
-            
-        }
+        public void ActionQuery(TelegramBotClient Bot, CallbackQuery callbackQuery){}
         
         public IState ChangeOnPrevState()
         {
@@ -35,6 +33,5 @@ namespace TelegramBot
         {
             return InlineKeyboard;
         }
-    
     }
 }

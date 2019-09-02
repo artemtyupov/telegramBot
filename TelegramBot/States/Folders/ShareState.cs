@@ -8,9 +8,7 @@ namespace TelegramBot
     {
         private static readonly InlineKeyboardMarkup InlineKeyboard = Program.InlKey;
 
-        public void ActionMsg(TelegramBotClient Bot, Message message)
-        {
-        }
+        public void ActionMsg(TelegramBotClient Bot, Message message){}
 
         public async void ActionQuery(TelegramBotClient Bot, CallbackQuery callbackQuery)
         {
@@ -22,11 +20,11 @@ namespace TelegramBot
             replyMarkup: Program.InlKey);
         }
         
-        
         public IState ChangeOnPrevState()
         {
             return new CMainMenuState();
         }
+
         public InlineKeyboardMarkup GetInlineKeyboardFromState(int idUser)
         {
             return InlineKeyboard;

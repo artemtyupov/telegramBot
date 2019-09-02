@@ -23,16 +23,10 @@ namespace TelegramBot
                 InlineKeyboardButton.WithCallbackData("Get shared storage"),
             }
         });
-        private static void ChangeInlineKeyboard(int idUser)
-        {
-            
-        }
 
-        public void ActionMsg(TelegramBotClient Bot, Message message)
-        {
-            
-                       
-        }
+        private static void ChangeInlineKeyboard(int idUser) {}
+
+        public void ActionMsg(TelegramBotClient Bot, Message message) {}
 
         public void ActionQuery(TelegramBotClient Bot, CallbackQuery callbackQuery){}
 
