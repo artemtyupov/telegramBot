@@ -30,8 +30,8 @@ namespace TelegramBot
         {
             Program.Conn.Open();
             var shareKey = Funcs.GetNewShareKey(Program.Conn);
-            var idUser = Convert.ToInt32(Database.MysqlSelect($"SELECT id FROM User WHERE name = \"{message.Chat.Username}\"", Program.Conn));
-            Database.MysqlDeleteOrInsert($"INSERT INTO Storage (Name, idUser, idShared) VALUES(\"{message.Text}\", {idUser}, \"{shareKey}\");", Program.Conn);
+            var idUser = Convert.ToInt32(SQLLiteDB.MysqlSelect($"SELECT id FROM User WHERE name = \"{message.Chat.Username}\"", Program.Conn));
+            SQLLiteDB.MysqlDeleteOrInsert($"INSERT INTO Storage (Name, idUser, idShared) VALUES(\"{message.Text}\", {idUser}, \"{shareKey}\");", Program.Conn);
             Program.Conn.Close();
             await Bot.SendTextMessageAsync(
                 message.Chat.Id,

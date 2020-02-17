@@ -15,10 +15,10 @@ namespace TelegramBot
             if (message.Type != MessageType.Text)
             {
                 Program.Conn.Open();
-                var idFolder = Convert.ToInt32(Database.MysqlSelect($"SELECT id FROM Folders WHERE Name = \"{Program._selectedButton}\"", Program.Conn));
+                var idFolder = Convert.ToInt32(SQLLiteDB.MysqlSelect($"SELECT id FROM Folders WHERE Name = \"{Program._selectedButton}\"", Program.Conn));
                 if (message.Caption != null)
                 {
-                    Database.MysqlDeleteOrInsert($"INSERT INTO Files (idFolder, idMessage, Name, idChat) VALUES ({idFolder}, {message.MessageId}, \"{message.Caption}\", {message.Chat.Id})", Program.Conn);
+                    SQLLiteDB.MysqlDeleteOrInsert($"INSERT INTO Files (idFolder, idMessage, Name, idChat) VALUES ({idFolder}, {message.MessageId}, \"{message.Caption}\", {message.Chat.Id})", Program.Conn);
 
                     Program.Conn.Close();
                     await Bot.SendTextMessageAsync(

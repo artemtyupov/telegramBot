@@ -12,8 +12,8 @@ namespace TelegramBot
         public async void ActionMsg(TelegramBotClient Bot, Message message)
         {   
             Program.Conn.Open();
-            var idStorage = Convert.ToInt32(Database.MysqlSelect($"SELECT id FROM storage WHERE Name = \"{Program._selectedStorage}\"", Program.Conn));
-            Database.MysqlDeleteOrInsert($"INSERT INTO Folders (idStorage, Name) VALUES({idStorage}, \"{message.Text}\");", Program.Conn);
+            var idStorage = Convert.ToInt32(SQLLiteDB.MysqlSelect($"SELECT id FROM storage WHERE Name = \"{Program._selectedStorage}\"", Program.Conn));
+            SQLLiteDB.MysqlDeleteOrInsert($"INSERT INTO Folders (idStorage, Name) VALUES({idStorage}, \"{message.Text}\");", Program.Conn);
             Program.Conn.Close();
             await Bot.SendTextMessageAsync(
                 message.Chat.Id,

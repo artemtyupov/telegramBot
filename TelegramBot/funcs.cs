@@ -2,23 +2,22 @@ using System;
 using Telegram.Bot.Types.ReplyMarkups;
 using System.Collections.Generic;
 using System.Linq;
-using Google.Protobuf.Collections;
 using MySql.Data.MySqlClient;
-using Telegram.Bot;
 using Telegram.Bot.Types;
+using System.Data.SQLite;
 
 namespace TelegramBot
 {
     public static class Funcs
     {
-        public static List<string> GetListFolders(int idUser, MySqlConnection conn)
+        public static List<string> GetListFolders(int idUser, SQLiteConnection conn)
         {
             var namesFolders = new List<string> {"<- Back"};
             conn.Open();
             var idStorage = GetIdStorageFromIdUser(idUser, conn);
             var sqlToShowFolders = "";
             sqlToShowFolders = $"SELECT Name FROM Folders WHERE idStorage = {idStorage}";
-            var command = new MySqlCommand(sqlToShowFolders, conn);
+            var command = new SQLiteCommand(sqlToShowFolders, conn);
             var reader = command.ExecuteReader();
             while (reader.Read())
             {
@@ -33,14 +32,14 @@ namespace TelegramBot
             return namesFolders;
         }
         
-        public static List<string> GetListFiles(int idUser, int idFolder, MySqlConnection conn)
+        public static List<string> GetListFiles(int idUser, int idFolder, SQLiteConnection conn)
         {
             var namesFolders = new List<string> {"<- Back"};
             conn.Open();
             var idStorage = GetIdStorageFromIdUser(idUser, conn);
             var sqlToShowFolders = "";
             sqlToShowFolders = $"SELECT Name FROM Files WHERE idFolder = {idFolder}";
-            var command = new MySqlCommand(sqlToShowFolders, conn);
+            var command = new SQLiteCommand(sqlToShowFolders, conn);
             var reader = command.ExecuteReader();
             while (reader.Read())
             {
@@ -55,13 +54,13 @@ namespace TelegramBot
             return namesFolders;
         }
             
-        public static List<string> GetListStorages(int idUser, MySqlConnection conn)
+        public static List<string> GetListStorages(int idUser, SQLiteConnection conn)
         {
             var namesStorages = new List<string> {"<- Back"};
             conn.Open();
             var sqlToShowFolders = "";
             sqlToShowFolders = $"SELECT Name FROM Storage WHERE idUser = {idUser}";
-            var command = new MySqlCommand(sqlToShowFolders, conn);
+            var command = new SQLiteCommand(sqlToShowFolders, conn);
             var reader = command.ExecuteReader();
             while (reader.Read())
             {
@@ -76,11 +75,11 @@ namespace TelegramBot
             return namesStorages;
         }
 
-        public static int GetIdStorageFromIdUser(int idUser, MySqlConnection conn)
+        public static int GetIdStorageFromIdUser(int idUser, SQLiteConnection conn)
         {
             var idStorage = 0;
             var sql = $"SELECT id FROM Storage WHERE idUser = {idUser} and name = \"{Program._selectedStorage}\"";
-            var command = new MySqlCommand(sql, conn);
+            var command = new SQLiteCommand(sql, conn);
             var reader = command.ExecuteReader();
             if (reader.Read())
             {
@@ -91,11 +90,11 @@ namespace TelegramBot
             return idStorage;
         }
         
-        public static int GetIdFolderFromIdStorage(int idStorage, MySqlConnection conn)
+        public static int GetIdFolderFromIdStorage(int idStorage, SQLiteConnection conn)
         {
             var idFolder = 0;
             var sql = $"SELECT id FROM Folders WHERE name = \"{Program._selectedButton}\" and idStorage = {idStorage}";
-            var command = new MySqlCommand(sql, conn);
+            var command = new SQLiteCommand(sql, conn);
             var reader = command.ExecuteReader();
             if (reader.Read())
             {
@@ -106,11 +105,11 @@ namespace TelegramBot
             return idFolder;
         }
         
-        public static int GetIdUserFromUsername(string username, MySqlConnection conn)
+        public static int GetIdUserFromUsername(string username, SQLiteConnection conn)
         {
             var idUser = 0;
             var sql = $"SELECT id FROM User WHERE name = \"{username}\"";
-            var command = new MySqlCommand(sql, conn);
+            var command = new SQLiteCommand(sql, conn);
             var reader = command.ExecuteReader();
             if (reader.Read())
             {
@@ -121,11 +120,11 @@ namespace TelegramBot
             return idUser;
         }
         
-        public static string GetNewShareKey(MySqlConnection conn)
+        public static string GetNewShareKey(SQLiteConnection conn)
         {
             var shareKey = Guid.NewGuid().ToString();
             var sqlCheck =$"Select idShared FROM Storage";
-            var command = new MySqlCommand(sqlCheck, conn);
+            var command = new SQLiteCommand(sqlCheck, conn);
             var reader = command.ExecuteReader();
             var flag = true;
             if (reader.Read())
@@ -143,38 +142,46 @@ namespace TelegramBot
             return shareKey;
         }
 
-        public static void Registration(string name, MySqlConnection conn)
+        public static void Registration(string name, SQLiteConnection conn)
         {
-            conn.Open(); 
-            var sqlToInsertNewUser = $"INSERT INTO User (name) VALUES (\"{name}\")";
-            var command = new MySqlCommand(sqlToInsertNewUser, conn);
-            command.ExecuteNonQuery();
-            conn.Close();
+            try
+            {
+                conn.Open();
+                var sqlToInsertNewUser = $"INSERT INTO User (name) VALUES (\"{name}\")";
+                var command = new SQLiteCommand(sqlToInsertNewUser, conn);
+                command.ExecuteNonQuery();
+                conn.Close();
+            }
+            catch {}
         }
          
-        public static bool Authorize(string name, MySqlConnection conn)
+        public static bool Authorize(string name, SQLiteConnection conn)
         {
-            conn.Open();
-            var sqlName = $"Select * FROM User WHERE name = \"{name}\"";
-            var command = new MySqlCommand(sqlName, conn);
-            var reader = command.ExecuteReader();
-            if (reader.Read())
+            try
             {
+                conn.Open();
+                var sqlName = $"Select * FROM User WHERE name = \"{name}\"";
+                var command = new SQLiteCommand(sqlName, conn);
+                var reader = command.ExecuteReader();
+                if (reader.Read())
+                {
+                    reader.Close();
+                    conn.Close();
+                    return true;
+                }
                 reader.Close();
                 conn.Close();
-                return true;
+                return false;
             }
-            reader.Close();
-            conn.Close();
-            return false;
+            catch { return false; }
         }
 
-        public static string GetShareKey(string userName, string storageName, MySqlConnection conn)
+        public static string GetShareKey(string userName, string storageName, SQLiteConnection conn)
         {
             conn.Open();
             var idUser = GetIdUserFromUsername(userName, conn);
             var sqlName = $"Select idShared FROM Storage WHERE name = \"{storageName}\" and idUser = {idUser}";
-            var command = new MySqlCommand(sqlName, conn);
+            var command = new SQLiteCommand(sqlName, conn);
             var reader = command.ExecuteReader();
             var res = "";
             while (reader.Read())
@@ -225,11 +232,11 @@ namespace TelegramBot
             return keyboardInline;
         }
 
-        public static bool CheckShareKey(string key, MySqlConnection conn)
+        public static bool CheckShareKey(string key, SQLiteConnection conn)
         {
             conn.Open();
             var sqlKey = $"Select * FROM Storage WHERE idShared = \"{key}\"";
-            var command = new MySqlCommand(sqlKey, conn);
+            var command = new SQLiteCommand(sqlKey, conn);
             var reader = command.ExecuteReader();
             if (reader.Read())
             {
@@ -241,25 +248,25 @@ namespace TelegramBot
             return false;
         }
 
-        public static void ShareProcess(Message message, MySqlConnection conn)
+        public static void ShareProcess(Message message, SQLiteConnection conn)
         {
             conn.Open();
             //Add copy storage
             var sqlKey = $"Select Name FROM Storage WHERE idShared = \"{message.Text}\"";
-            var command = new MySqlCommand(sqlKey, conn);
+            var command = new SQLiteCommand(sqlKey, conn);
             var reader = command.ExecuteReader();
             reader.Read();
             var name = reader[0];
             reader.Close();
 
-            var idUser = Convert.ToInt32(Database.MysqlSelect($"SELECT id FROM User WHERE name = \"{message.Chat.Username}\"", Program.Conn));
+            var idUser = Convert.ToInt32(SQLLiteDB.MysqlSelect($"SELECT id FROM User WHERE name = \"{message.Chat.Username}\"", Program.Conn));
             var shareKey = Funcs.GetNewShareKey(Program.Conn);
-            Database.MysqlDeleteOrInsert($"INSERT INTO Storage (Name, idUser, idShared) VALUES(\"{name + " (Shared)"}\", {idUser}, \"{shareKey}\");", Program.Conn);
+            SQLLiteDB.MysqlDeleteOrInsert($"INSERT INTO Storage (Name, idUser, idShared) VALUES(\"{name + " (Shared)"}\", {idUser}, \"{shareKey}\");", Program.Conn);
 
             //Add folders and files
-            var idStorageOld = Convert.ToInt32(Database.MysqlSelect($"SELECT id FROM storage WHERE idShared = \"{message.Text}\"", Program.Conn));
+            var idStorageOld = Convert.ToInt32(SQLLiteDB.MysqlSelect($"SELECT id FROM storage WHERE idShared = \"{message.Text}\"", Program.Conn));
             sqlKey = $"Select Name FROM Folders WHERE idStorage = \"{idStorageOld}\"";
-            command = new MySqlCommand(sqlKey, conn);
+            command = new SQLiteCommand(sqlKey, conn);
             var readerFolder = command.ExecuteReader();
             List<string> namesFolder = new List<string>();
             while (readerFolder.Read())
@@ -267,14 +274,14 @@ namespace TelegramBot
                 namesFolder.Add(readerFolder.GetString(0));
             }
             readerFolder.Close();
-            var idStorageNew = Convert.ToInt32(Database.MysqlSelect($"SELECT id FROM storage WHERE idShared = \"{shareKey}\"", Program.Conn));
+            var idStorageNew = Convert.ToInt32(SQLLiteDB.MysqlSelect($"SELECT id FROM storage WHERE idShared = \"{shareKey}\"", Program.Conn));
             foreach (var val in namesFolder)
             {
-                Database.MysqlDeleteOrInsert($"INSERT INTO Folders (idStorage, Name) VALUES({idStorageNew}, \"{val}\");", Program.Conn);
-                var idFolderOld = Convert.ToInt32(Database.MysqlSelect($"SELECT id FROM Folders WHERE idStorage = {idStorageOld} and Name = \"{val}\"", Program.Conn));
-                var idFolderNew = Convert.ToInt32(Database.MysqlSelect($"SELECT id FROM Folders WHERE idStorage = {idStorageNew} and Name = \"{val}\"", Program.Conn));
+                SQLLiteDB.MysqlDeleteOrInsert($"INSERT INTO Folders (idStorage, Name) VALUES({idStorageNew}, \"{val}\");", Program.Conn);
+                var idFolderOld = Convert.ToInt32(SQLLiteDB.MysqlSelect($"SELECT id FROM Folders WHERE idStorage = {idStorageOld} and Name = \"{val}\"", Program.Conn));
+                var idFolderNew = Convert.ToInt32(SQLLiteDB.MysqlSelect($"SELECT id FROM Folders WHERE idStorage = {idStorageNew} and Name = \"{val}\"", Program.Conn));
                 sqlKey = $"Select idMessage, Name, idChat FROM Files WHERE idFolder = \"{idFolderOld}\"";
-                command = new MySqlCommand(sqlKey, conn);
+                command = new SQLiteCommand(sqlKey, conn);
                 var readerFile = command.ExecuteReader();
                 var mapFiles = new Dictionary<int, Dictionary <int, string>>();
                 var dict = new Dictionary<int, string>();
@@ -288,7 +295,7 @@ namespace TelegramBot
 
                 foreach (var pair in mapFiles.Zip(dict, Tuple.Create))
                 {
-                    Database.MysqlDeleteOrInsert($"INSERT INTO Files (idFolder, idMessage, Name, idChat) VALUES ({idFolderNew}, {pair.Item1.Key}, \"{pair.Item2.Value}\", {pair.Item2.Key})", Program.Conn);
+                    SQLLiteDB.MysqlDeleteOrInsert($"INSERT INTO Files (idFolder, idMessage, Name, idChat) VALUES ({idFolderNew}, {pair.Item1.Key}, \"{pair.Item2.Value}\", {pair.Item2.Key})", Program.Conn);
                 }
 
             }

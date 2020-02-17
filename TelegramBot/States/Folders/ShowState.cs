@@ -54,11 +54,15 @@ namespace TelegramBot
         {
             ChangeInlineKeyboard();
             Program._selectedButton = callbackQuery.Data;
-            await Bot.DeleteMessageAsync(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId);
-            await Bot.SendTextMessageAsync(
-                callbackQuery.Message.Chat.Id,
-                "Choose action:",
-                replyMarkup: InlineKeyboard);
+            try
+            { 
+                await Bot.DeleteMessageAsync(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId);
+                await Bot.SendTextMessageAsync(
+                    callbackQuery.Message.Chat.Id,
+                    "Choose action:",
+                    replyMarkup: InlineKeyboard);
+            }
+            catch { }
         }
         
         public IState ChangeOnPrevState()

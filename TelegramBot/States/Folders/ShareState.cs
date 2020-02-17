@@ -13,11 +13,15 @@ namespace TelegramBot
         public async void ActionQuery(TelegramBotClient Bot, CallbackQuery callbackQuery)
         {
             var shareKey = Funcs.GetShareKey(callbackQuery.From.Username, Program._selectedStorage, Program.Conn);
-            await Bot.DeleteMessageAsync(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId);
-            await Bot.SendTextMessageAsync(
-                callbackQuery.Message.Chat.Id,
-                $"Your share key: {shareKey}",
-            replyMarkup: Program.InlKey);
+            try
+            { 
+                await Bot.DeleteMessageAsync(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId);
+                await Bot.SendTextMessageAsync(
+                    callbackQuery.Message.Chat.Id,
+                    $"Your share key: {shareKey}",
+                replyMarkup: Program.InlKey);
+            }
+            catch { }
         }
         
         public IState ChangeOnPrevState()

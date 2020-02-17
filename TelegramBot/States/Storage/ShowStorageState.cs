@@ -20,11 +20,15 @@ namespace TelegramBot
         {
             Program._selectedButton = callbackQuery.Data;
             Program._selectedStorage = callbackQuery.Data;
-            await Bot.DeleteMessageAsync(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId);
-            await Bot.SendTextMessageAsync(
-                callbackQuery.Message.Chat.Id,
-                "Choose action:",
-                replyMarkup: Program.InlKey);
+            try
+            { 
+                await Bot.DeleteMessageAsync(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId);
+                await Bot.SendTextMessageAsync(
+                    callbackQuery.Message.Chat.Id,
+                    "Choose action:",
+                    replyMarkup: Program.InlKey);
+            }
+            catch { }
         }
 
         public IState ChangeOnPrevState()

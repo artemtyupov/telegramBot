@@ -17,17 +17,21 @@ namespace TelegramBot
         public void ActionMsg(TelegramBotClient Bot, Message message)
         {
             Program.Conn.Open();
-            Database.MysqlDeleteOrInsert($"UPDATE Storage SET Name = \"{message.Text}\" WHERE Name = \"{Program._selectedButton}\"", Program.Conn);
+            SQLLiteDB.MysqlDeleteOrInsert($"UPDATE Storage SET Name = \"{message.Text}\" WHERE Name = \"{Program._selectedButton}\"", Program.Conn);
             Program.Conn.Close();
         }
 
         public async void ActionQuery(TelegramBotClient Bot, CallbackQuery callbackQuery)
         {
             Program._selectedButton = callbackQuery.Data;
-            await Bot.DeleteMessageAsync(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId);
-            await Bot.SendTextMessageAsync(
-                callbackQuery.Message.Chat.Id,
-                "Choose new name:");
+            try
+            { 
+                await Bot.DeleteMessageAsync(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId);
+                await Bot.SendTextMessageAsync(
+                    callbackQuery.Message.Chat.Id,
+                    "Choose new name:");
+            }
+            catch { }
         }
         
         public IState ChangeOnPrevState()

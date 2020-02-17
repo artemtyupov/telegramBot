@@ -20,13 +20,17 @@ namespace TelegramBot
         public async void ActionQuery(TelegramBotClient Bot, CallbackQuery callbackQuery)
         {
             Program.Conn.Open();
-            Database.MysqlDeleteOrInsert($"DELETE FROM Storage WHERE Name = \"{callbackQuery.Data}\" ", Program.Conn);
+            SQLLiteDB.MysqlDeleteOrInsert($"DELETE FROM Storage WHERE Name = \"{callbackQuery.Data}\" ", Program.Conn);
             Program.Conn.Close();
-            await Bot.DeleteMessageAsync(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId);
-            await Bot.SendTextMessageAsync(
-                callbackQuery.Message.Chat.Id,
-                "Choose action:",
-                replyMarkup: new CCreateStorageState().GetInlineKeyboardFromState(callbackQuery.From.Id));
+            try
+            { 
+                await Bot.DeleteMessageAsync(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId);
+                await Bot.SendTextMessageAsync(
+                    callbackQuery.Message.Chat.Id,
+                    "Choose action:",
+                    replyMarkup: new CCreateStorageState().GetInlineKeyboardFromState(callbackQuery.From.Id));
+            }
+            catch { }
         }
         
         public IState ChangeOnPrevState()

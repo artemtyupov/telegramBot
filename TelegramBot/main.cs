@@ -4,6 +4,7 @@ using Telegram.Bot.Args;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 using MySql.Data.MySqlClient;
+using System.Data.SQLite;
 
 namespace TelegramBot
 {
@@ -30,9 +31,11 @@ namespace TelegramBot
 
         private static CContext context;
         private static readonly string databaseName = "TelegramBot";
+        private static readonly string pathToDB = @"URI=file:C:\Users\Artem\Desktop\Bot\TelegramBot\database.db";
         private static readonly string Token = "632773726:AAE6L2o9zENbHrLKSTCByB_z4rpQ1-ZuMlY";
         private static readonly Telegram.Bot.TelegramBotClient Bot = new Telegram.Bot.TelegramBotClient(Token);
-        public static readonly MySqlConnection Conn = Database.OpenMysqlConnection(databaseName);
+        public static readonly SQLiteConnection Conn = SQLLiteDB.OpenMysqlConnection(pathToDB);
+        public static readonly MySqlConnection Conn1 = Database.OpenMysqlConnection(databaseName);
         public static string _selectedButton = "";
         public static string _selectedStorage = "";
 
@@ -76,22 +79,30 @@ namespace TelegramBot
                         {
                             Funcs.Registration(message.Chat.Username, Conn);
                         }
-                        Conn.Open();
-                        await Bot.SendTextMessageAsync(
-                            message.Chat.Id,
-                            "\n Choose action:",
-                            replyMarkup: context.GetInlineKeyboardFromContext(Funcs.GetIdUserFromUsername(message.From.Username, Conn)));
-                        Conn.Close();
+                        try
+                        {
+                            Conn.Open();
+                            await Bot.SendTextMessageAsync(
+                                message.Chat.Id,
+                                "\n Choose action:",
+                                replyMarkup: context.GetInlineKeyboardFromContext(Funcs.GetIdUserFromUsername(message.From.Username, Conn)));
+                            Conn.Close();
+                        }
+                        catch { }
                         break;
+
                     default:
+                        if (context == null)
+                            return;
                         context.ActionMsgContext(Bot, message);
                         break;
                 }
             }
             else
             {
-                if (context != null)
-                    context.ActionMsgContext(Bot, message);
+                if (context == null)
+                    return;
+                context.ActionMsgContext(Bot, message);
             }
         }
 
@@ -116,11 +127,15 @@ namespace TelegramBot
                 case EnumActions.EActions.GetData:
                     context.SavePrevState();
                     context.ChangeState(EnumActions.GetStateObjectFromEAction(act));
-                    await Bot.DeleteMessageAsync(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId);
-                    await Bot.SendTextMessageAsync(
-                        callbackQuery.Message.Chat.Id,
-                        EnumActions.GetStringFromEAction(act),
-                        replyMarkup: context.GetInlineKeyboardFromContext(idUser));
+                    try
+                    {
+                        await Bot.DeleteMessageAsync(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId);
+                        await Bot.SendTextMessageAsync(
+                            callbackQuery.Message.Chat.Id,
+                            EnumActions.GetStringFromEAction(act),
+                            replyMarkup: context.GetInlineKeyboardFromContext(idUser));
+                    }
+                    catch { }
                     break;
 
                 case EnumActions.EActions.CreateStorage:
@@ -129,19 +144,27 @@ namespace TelegramBot
                 case EnumActions.EActions.GetSharedStorage:
                     context.SavePrevState();
                     context.ChangeState(EnumActions.GetStateObjectFromEAction(act));
-                    await Bot.DeleteMessageAsync(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId);
-                    await Bot.SendTextMessageAsync(
-                        callbackQuery.Message.Chat.Id,
-                        EnumActions.GetStringFromEAction(act));
+                    try
+                    {
+                        await Bot.DeleteMessageAsync(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId);
+                        await Bot.SendTextMessageAsync(
+                            callbackQuery.Message.Chat.Id,
+                            EnumActions.GetStringFromEAction(act));
+                    }
+                    catch { }
                     break;
                     
                 case EnumActions.EActions.Back: 
                     context.ChangeOnPrevState();
-                    await Bot.DeleteMessageAsync(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId);
-                    await Bot.SendTextMessageAsync(
+                    try
+                    { 
+                        await Bot.DeleteMessageAsync(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId);
+                        await Bot.SendTextMessageAsync(
                         callbackQuery.Message.Chat.Id,
                         EnumActions.GetStringFromEAction(act),
                         replyMarkup: context.GetInlineKeyboardFromContext(idUser));
+                    }
+                    catch { }
                     break;
 
                 case EnumActions.EActions.ShareStorage:

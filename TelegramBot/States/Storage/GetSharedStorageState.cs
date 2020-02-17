@@ -48,10 +48,14 @@ namespace TelegramBot
 
         public async void ActionQuery(TelegramBotClient Bot, CallbackQuery callbackQuery)
         {
-            await Bot.DeleteMessageAsync(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId);
-            await Bot.SendTextMessageAsync(
-                callbackQuery.Message.Chat.Id,
-                $"Enter share key:");
+            try
+            { 
+                await Bot.DeleteMessageAsync(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId);
+                await Bot.SendTextMessageAsync(
+                    callbackQuery.Message.Chat.Id,
+                    $"Enter share key:");
+            }
+            catch { }
         }
         
         public IState ChangeOnPrevState()
