@@ -11,8 +11,11 @@ namespace TelegramBot
         {
             new[] // first row
             {
-                InlineKeyboardButton.WithCallbackData("Create storage"),
-                InlineKeyboardButton.WithCallbackData("Delete storage"),
+                InlineKeyboardButton.WithCallbackData("+"),
+                InlineKeyboardButton.WithCallbackData("-"),
+            },
+            new[] // first row
+            {
                 InlineKeyboardButton.WithCallbackData("Rename storage"),
                 InlineKeyboardButton.WithCallbackData("Show storage's"),
             },
@@ -22,12 +25,15 @@ namespace TelegramBot
             }
         });
 
+        public int getID() { return 9; }
+
         public async void ActionMsg(TelegramBotClient Bot, Message message)
         {
             //check key
             if (Funcs.CheckShareKey(message.Text, Program.Conn))
             {
                 //share
+                await Bot.DeleteMessageAsync(message.Chat.Id, message.MessageId);
                 Funcs.ShareProcess(message, Program.Conn);
                 await Bot.SendTextMessageAsync(
                     message.Chat.Id,
@@ -38,6 +44,7 @@ namespace TelegramBot
             else
             {
                 //error
+                await Bot.DeleteMessageAsync(message.Chat.Id, message.MessageId);
                 await Bot.SendTextMessageAsync(
                 message.Chat.Id,
                 "Key is unknown. \n" +

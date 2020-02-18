@@ -10,6 +10,8 @@ namespace TelegramBot
     {
         private static InlineKeyboardMarkup InlineKeyboard;
 
+        public int getID() { return 1; }
+
         public async void ActionMsg(TelegramBotClient Bot, Message message)
         {
             if (message.Type != MessageType.Text)
@@ -19,7 +21,6 @@ namespace TelegramBot
                 if (message.Caption != null)
                 {
                     SQLLiteDB.MysqlDeleteOrInsert($"INSERT INTO Files (idFolder, idMessage, Name, idChat) VALUES ({idFolder}, {message.MessageId}, \"{message.Caption}\", {message.Chat.Id})", Program.Conn);
-
                     Program.Conn.Close();
                     await Bot.SendTextMessageAsync(
                         message.Chat.Id,
@@ -29,10 +30,11 @@ namespace TelegramBot
                 }
                 else
                 {
+                    Program.Conn.Close();
                     await Bot.SendTextMessageAsync(
                         message.Chat.Id,
                         "Your file didnt added.\n"+ 
-                        "Please enter the caption, when you add file"+
+                        "Please enter the caption, when you add file\n"+
                         "Choose action:",
                         replyMarkup: new CShowState().GetInlineKeyboardFromState(message.From.Id));
                 }

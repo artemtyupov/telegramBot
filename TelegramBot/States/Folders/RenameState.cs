@@ -8,6 +8,8 @@ namespace TelegramBot
     {
         private static InlineKeyboardMarkup InlineKeyboard;
 
+        public int getID() { return 3; }
+
         private static void ChangeInlineKeyboard(int idUser)
         {
             var buttonItem = Funcs.GetListFolders(idUser, Program.Conn).ToArray();

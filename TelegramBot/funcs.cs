@@ -283,12 +283,12 @@ namespace TelegramBot
                 sqlKey = $"Select idMessage, Name, idChat FROM Files WHERE idFolder = \"{idFolderOld}\"";
                 command = new SQLiteCommand(sqlKey, conn);
                 var readerFile = command.ExecuteReader();
-                var mapFiles = new Dictionary<int, Dictionary <int, string>>();
-                var dict = new Dictionary<int, string>();
+                var mapFiles = new Dictionary<int, List<KeyValuePair<int, string>>>();
+                var dict = new List<KeyValuePair<int, string>>();
 
                 while (readerFile.Read())
                 {
-                    dict.Add(readerFile.GetInt32(2), readerFile.GetString(1));
+                    dict.Add(new KeyValuePair<int, string>(readerFile.GetInt32(2), readerFile.GetString(1)));
                     mapFiles.Add(readerFile.GetInt32(0), dict);
                 }
                 readerFile.Close();

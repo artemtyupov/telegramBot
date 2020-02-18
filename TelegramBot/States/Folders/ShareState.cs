@@ -8,6 +8,8 @@ namespace TelegramBot
     {
         private static readonly InlineKeyboardMarkup InlineKeyboard = Program.InlKey;
 
+        public int getID() { return 4; }
+
         public void ActionMsg(TelegramBotClient Bot, Message message){}
 
         public async void ActionQuery(TelegramBotClient Bot, CallbackQuery callbackQuery)

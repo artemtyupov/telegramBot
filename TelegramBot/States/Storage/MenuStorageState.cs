@@ -10,8 +10,8 @@ namespace TelegramBot
         {
             new[] // first row
             {
-                InlineKeyboardButton.WithCallbackData("Create storage"),
-                InlineKeyboardButton.WithCallbackData("Delete storage"),
+                InlineKeyboardButton.WithCallbackData("+"),
+                InlineKeyboardButton.WithCallbackData("-"),
             },
             new[] // first row
             {
@@ -23,6 +23,8 @@ namespace TelegramBot
                 InlineKeyboardButton.WithCallbackData("Get shared storage"),
             }
         });
+
+        public int getID() { return 10; }
 
         private static void ChangeInlineKeyboard(int idUser) {}
 

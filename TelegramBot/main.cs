@@ -14,8 +14,8 @@ namespace TelegramBot
         {
             new[] 
             {
-                InlineKeyboardButton.WithCallbackData("Create folder"),
-                InlineKeyboardButton.WithCallbackData("Delete folder"),
+                InlineKeyboardButton.WithCallbackData("+"),
+                InlineKeyboardButton.WithCallbackData("-"),
             },
             new[] 
             {
@@ -115,7 +115,66 @@ namespace TelegramBot
             Conn.Open();
             var idUser = Funcs.GetIdUserFromUsername(callbackQuery.From.Username, Conn);
             Conn.Close();
-            EnumActions.EActions act = EnumActions.GetEnumActionFromString(callbackQuery.Data);
+
+            EnumActions.EActions act = EnumActions.EActions.MenuStorage;
+            if (callbackQuery.Data == "+" || callbackQuery.Data == "-")
+            {
+                int id = context.getID();
+
+                if (callbackQuery.Data == "+")
+                {
+                    switch (id)
+                    {
+                        case 10:
+                        case 7:
+                        case 8:
+                        case 11:
+                        case 9:
+                            act = EnumActions.EActions.CreateStorage;
+                            break;
+
+                        case 2:
+                        case 12:
+                        case 15:
+                        case 14:
+                        case 3:
+                            act = EnumActions.EActions.CreateFolder;
+                            break;
+
+                        case 6:
+                            act = EnumActions.EActions.AddData;
+                            break;
+                    }
+                }
+                else
+                {
+                    switch (id)
+                    {
+                        case 10:
+                        case 7:
+                        case 8:
+                        case 11:
+                        case 9:
+                            act = EnumActions.EActions.DeleteStorage;
+                            break;
+
+                        case 2:
+                        case 12:
+                        case 15:
+                        case 14:
+                        case 3:
+                            act = EnumActions.EActions.DeleteFolder;
+                            break;
+
+                        /*case 6:
+                            act = EnumActions.EActions.AddData;
+                            break;*/
+                    }
+                }
+            }
+            else
+                act = EnumActions.GetEnumActionFromString(callbackQuery.Data);
+
             switch (act)
             {
                 case EnumActions.EActions.DeleteStorage:

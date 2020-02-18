@@ -8,6 +8,8 @@ namespace TelegramBot
     {
         private static InlineKeyboardMarkup InlineKeyboard;
 
+        public int getID() { return 5; }
+
         private static void ChangeInlineKeyboard(int idUser)
         {
             var buttonItem = Funcs.GetListFolders(idUser, Program.Conn).ToArray();
@@ -34,6 +36,8 @@ namespace TelegramBot
     {
         private static InlineKeyboardMarkup InlineKeyboard;
 
+        public int getID() { return 6; }
+
         private static void ChangeInlineKeyboard()
         {
             InlineKeyboard = new InlineKeyboardMarkup(new[]
@@ -41,7 +45,7 @@ namespace TelegramBot
                 new[] // first row
                 {
                     InlineKeyboardButton.WithCallbackData("<- Back"),
-                    InlineKeyboardButton.WithCallbackData("Add data"),
+                    InlineKeyboardButton.WithCallbackData("+"),
                     InlineKeyboardButton.WithCallbackData("Get data"),
                     
                 }

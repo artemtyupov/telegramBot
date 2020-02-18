@@ -10,6 +10,8 @@ namespace TelegramBot
         
         private static InlineKeyboardMarkup InlineKeyboard;
 
+        public int getID() { return 13; }
+
         private static void ChangeInlineKeyboard(int idUser)
         {
             Program.Conn.Open();

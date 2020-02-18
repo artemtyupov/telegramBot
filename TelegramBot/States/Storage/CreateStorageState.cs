@@ -8,12 +8,15 @@ namespace TelegramBot
 {
     public class CCreateStorageState : IState
     {
+
+        public int getID() { return 7; }
+
         private static readonly InlineKeyboardMarkup InlineKeyboard = new InlineKeyboardMarkup(new[]
         {
             new[] // first row
             {
-                InlineKeyboardButton.WithCallbackData("Create storage"),
-                InlineKeyboardButton.WithCallbackData("Delete storage"),
+                InlineKeyboardButton.WithCallbackData("+"),
+                InlineKeyboardButton.WithCallbackData("-"),
             },
             new[] 
             {

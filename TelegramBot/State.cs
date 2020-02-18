@@ -10,7 +10,7 @@ namespace TelegramBot
         void ActionQuery(TelegramBotClient Bot, CallbackQuery callbackQuery);
 
         IState ChangeOnPrevState();
-
+        int getID();
         InlineKeyboardMarkup GetInlineKeyboardFromState(int idUser);
     }
 }

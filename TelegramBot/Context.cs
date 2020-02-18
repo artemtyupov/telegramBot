@@ -47,5 +47,7 @@ namespace TelegramBot
         {
             return st;
         }
+
+        public int getID() { return st.getID(); }
     }
 }

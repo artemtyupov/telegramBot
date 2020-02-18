@@ -32,13 +32,13 @@ namespace TelegramBot
             EActions res = EActions.Unknown;
             switch (action)
             {
-                case "Create storage":
+                /*case "Create storage":
                     res = EActions.CreateStorage;
                     break;
 
                 case "Delete storage":
                     res = EActions.DeleteStorage;
-                    break;
+                    break;*/
 
                 case "Rename storage":
                     res = EActions.RenameStorage;
@@ -48,13 +48,13 @@ namespace TelegramBot
                     res = EActions.ShowStorage;
                     break;
 
-                case "Create folder":
-                    res = EActions.CreateFolder;
-                    break;
+                //case "Create folder":
+                //    res = EActions.CreateFolder;
+                //    break;
 
-                case "Delete folder":
-                    res = EActions.DeleteFolder;
-                    break;
+                //case "Delete folder":
+                //    res = EActions.DeleteFolder;
+                //    break;
 
                 case "Rename folder":
                     res = EActions.RenameFolder;
@@ -64,9 +64,9 @@ namespace TelegramBot
                     res = EActions.ShowFolder;
                     break;
 
-                case "Add data":
-                    res = EActions.AddData;
-                    break;
+                //case "Add data":
+                //    res = EActions.AddData;
+                //    break;
 
                 case "Get data":
                     res = EActions.GetData;
