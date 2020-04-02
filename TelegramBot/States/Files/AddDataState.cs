@@ -18,26 +18,43 @@ namespace TelegramBot
             {
                 Program.Conn.Open();
                 var idFolder = Convert.ToInt32(SQLLiteDB.MysqlSelect($"SELECT id FROM Folders WHERE Name = \"{Program._selectedButton}\"", Program.Conn));
-                if (message.Caption != null)
+                
+                string file_id_api = "";
+                string filename = "";
+                if (message.Type == MessageType.Document)
                 {
-                    SQLLiteDB.MysqlDeleteOrInsert($"INSERT INTO Files (idFolder, idMessage, Name, idChat) VALUES ({idFolder}, {message.MessageId}, \"{message.Caption}\", {message.Chat.Id})", Program.Conn);
-                    Program.Conn.Close();
-                    await Bot.SendTextMessageAsync(
-                        message.Chat.Id,
-                        "Your file added.\n" +
-                        "Choose action:",
-                        replyMarkup: new CShowState().GetInlineKeyboardFromState(message.From.Id));
+                    file_id_api = message.Document.FileId;
+                    filename = message.Document.FileName;
                 }
-                else
+                else if (message.Type == MessageType.Photo)
                 {
-                    Program.Conn.Close();
-                    await Bot.SendTextMessageAsync(
-                        message.Chat.Id,
-                        "Your file didnt added.\n"+ 
-                        "Please enter the caption, when you add file\n"+
-                        "Choose action:",
-                        replyMarkup: new CShowState().GetInlineKeyboardFromState(message.From.Id));
+                    if (message.Caption != null)
+                    {
+                        file_id_api = message.Photo[message.Photo.Length - 1].FileId;
+                        filename = message.Caption;
+                        if (!filename.Contains(".jpg") || !filename.Contains(".png") || !filename.Contains(".jpeg") || !filename.Contains(".bmp"))
+                            filename += ".jpg";
+                    }
+                    else
+                    {
+                        Program.Conn.Close();
+                        await Bot.SendTextMessageAsync(
+                            message.Chat.Id,
+                            "Your file didnt added.\n" +
+                            "Please enter the caption, when you add photo(better with extension)\n" +
+                            "Choose action:",
+                            replyMarkup: new CShowState().GetInlineKeyboardFromState(message.From.Id));
+                    }
                 }
+                
+                SQLLiteDB.MysqlDeleteOrInsert($"INSERT INTO Files (idFolder, idMessage, Name, idChat, FSCreatedTime, FSAccessTime, FSWriteTime, idFileAPI) VALUES ({idFolder}, {message.MessageId}, \"{filename}\", {message.Chat.Id}, \"{DateTime.Now}\", \"{DateTime.Now}\", \"{DateTime.Now}\", \"{file_id_api}\")", Program.Conn);
+                Program.Conn.Close();
+                await Bot.SendTextMessageAsync(
+                    message.Chat.Id,
+                    "Your file added.\n" +
+                    "Choose action:",
+                    replyMarkup: new CShowState().GetInlineKeyboardFromState(message.From.Id));
+                
             }
         }
 

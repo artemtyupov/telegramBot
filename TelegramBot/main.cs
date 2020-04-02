@@ -5,6 +5,11 @@ using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 using MySql.Data.MySqlClient;
 using System.Data.SQLite;
+using System.Threading.Tasks;
+using System.Diagnostics;
+using System.IO;
+using System.Windows.Forms;
+using System.Threading;
 
 namespace TelegramBot
 {
@@ -35,10 +40,10 @@ namespace TelegramBot
         private static readonly string Token = "632773726:AAE6L2o9zENbHrLKSTCByB_z4rpQ1-ZuMlY";
         private static readonly Telegram.Bot.TelegramBotClient Bot = new Telegram.Bot.TelegramBotClient(Token);
         public static readonly SQLiteConnection Conn = SQLLiteDB.OpenMysqlConnection(pathToDB);
-        public static readonly MySqlConnection Conn1 = Database.OpenMysqlConnection(databaseName);
+        //public static readonly MySqlConnection Conn1 = Database.OpenMysqlConnection(databaseName);
         public static string _selectedButton = "";
         public static string _selectedStorage = "";
-
+        
         public static void Main()
         {
             var me = Bot.GetMeAsync().Result;
@@ -52,6 +57,7 @@ namespace TelegramBot
             Bot.StopReceiving();
         }
 
+        
         private static async void BotOnMessageReceived(object sender, MessageEventArgs messageEventArgs)
         {
             var message = messageEventArgs.Message;
@@ -62,14 +68,79 @@ namespace TelegramBot
                 switch (message.Text.Split(' ').First())
                 {
                     case "/help":
-                        const string usage = @"Usage:
-                                               /start - to start
-                                               /help - to help";
+                        const string usage = @"Usage:\n
+                                               /start - to start\n
+                                               /help - to help\n
+                                               /fson, /fsoff - to on/off filesystem(only for Windows).\n";
 
                         await Bot.SendTextMessageAsync(
                             message.Chat.Id,
                             usage,
                             replyMarkup: new ReplyKeyboardRemove());
+                        break;
+
+                    case "/fson":
+                        
+                        if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+                        {
+                            
+                            string selectedPath = "";
+
+                            Thread t = new Thread((ThreadStart)(() => {
+                                OpenFileDialog saveFileDialog1 = new OpenFileDialog();
+
+                                saveFileDialog1.Filter = "Exe Files (*.exe)|*.exe";
+                                saveFileDialog1.FilterIndex = 2;
+                                saveFileDialog1.RestoreDirectory = true;
+
+                                if (saveFileDialog1.ShowDialog() == DialogResult.OK)
+                                {
+                                    selectedPath = saveFileDialog1.FileName;
+                                }
+                            }));
+
+                            // Run your code from a thread that joins the STA Thread
+                            t.SetApartmentState(ApartmentState.STA);
+                            t.Start();
+                            t.Join();
+
+                            string cut_path = selectedPath.Replace("\\TelegramBotFS.exe", "");
+
+                            if (selectedPath.Contains("TelegramBotFS.exe"))
+                                Process.Start(selectedPath, cut_path + " \"" + message.Chat.Username);
+
+
+                            await Bot.SendTextMessageAsync(
+                            message.Chat.Id,
+                            "Succsessfully. Disk M:/ mounted.\n" +
+                            "All your storages available there.\n" +
+                            "After completion write command /fsoff");
+                        }
+                        else
+                        {
+                            await Bot.SendTextMessageAsync(
+                            message.Chat.Id,
+                            "Error: working only for Windows:");
+                        }
+                        break;
+
+                    case "/fsoff":
+                        if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+                        {
+
+
+                            DokanNet.Dokan.Unmount('M');
+
+                            await Bot.SendTextMessageAsync(
+                            message.Chat.Id,
+                            "Succsessfully. Disk M:/ unmounted.");
+                        }
+                        else
+                        {
+                            await Bot.SendTextMessageAsync(
+                            message.Chat.Id,
+                            "Error: working only for Windows:");
+                        }
                         break;
 
                     case "/start":
@@ -246,3 +317,29 @@ namespace TelegramBot
         }
     }
 }
+
+
+//https://stackoverflow.com/questions/34170546/getfile-method-in-telegram-bot-api
+//1. https://api.telegram.org/bot632773726:AAE6L2o9zENbHrLKSTCByB_z4rpQ1-ZuMlY/getUpdates
+//2. https://api.telegram.org/bot632773726:AAE6L2o9zENbHrLKSTCByB_z4rpQ1-ZuMlY/getFile?file_id=AgACAgIAAxkBAAIMIV6GVty_BNsJGB2EJZAMBz8aLr7qAALvrTEblQoxSLCYYcGwWrrENqbskS4AAwEAAwIAA3kAA4tZAAIYBA
+//3. https://api.telegram.org/file/bot632773726:AAE6L2o9zENbHrLKSTCByB_z4rpQ1-ZuMlY/photos/file_3.jpg
+
+
+//TODO:
+/*
+ * 
+ * 1. Поменять функции Read\Write file в FSClass.
+ * Write запускается при - изменение существующего файла\копировании нового.
+ * Соответственно при копировании нужно:
+ * отправлять файл в телеграмм и сохранять данные в бд
+ * При изменении файла, просто добиться успешного сохранения.
+ * 
+ * 
+ * 2. Добавить наконец-то удаление файлов в клиенте телеги.
+ * 
+ * 3. Перенести все отсюда в гит(включая туду) и закрыть нужные ишью.
+ * 
+ * 4. Проводить работу по несколько часов в день по нужным ишью!
+ * 
+ * 
+ * */

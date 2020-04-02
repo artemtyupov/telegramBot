@@ -126,7 +126,7 @@ namespace TelegramBot
 
                 case EActions.AddData:
                     res = "Add some data\n" +
-                        "Please, enter the caption with file";
+                        "Please enter the caption, when you add photo(better with extension)";
                     break;
 
                 case EActions.GetData:
