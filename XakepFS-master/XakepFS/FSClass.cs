@@ -30,15 +30,15 @@ namespace TelegramBotFS
         private const FileAccess DataWriteAccess = FileAccess.WriteData | FileAccess.AppendData |
                                                    FileAccess.Delete |
                                                    FileAccess.GenericWrite;
-        public void Cleanup(string fileName, DokanFileInfo info)
+        public void Cleanup(string fileName, IDokanFileInfo info)
         {
         }
 
-        public void CloseFile(string fileName, DokanFileInfo info)
+        public void CloseFile(string fileName, IDokanFileInfo info)
         {
         }
 
-        public NtStatus CreateFile(string fileName, FileAccess access, FileShare share, FileMode mode, FileOptions options, FileAttributes attributes, DokanFileInfo info)
+        public NtStatus CreateFile(string fileName, FileAccess access, FileShare share, FileMode mode, FileOptions options, FileAttributes attributes, IDokanFileInfo info)
         {
             var filePath = "";
             if (fileName == "\\")
@@ -166,6 +166,8 @@ namespace TelegramBotFS
                                         FSTree.DeleteDirectory(fileName);
                                     else
                                         FSTree.DeleteFile(fileName);
+
+                                    return NtStatus.Success;
                                 }
 
                                 info.IsDirectory = pathIsDirectory;
@@ -182,8 +184,8 @@ namespace TelegramBotFS
                         break;
 
                     case FileMode.CreateNew:
-                        //if (pathExists)
-                            //return NtStatus.ObjectNameCollision;
+                        if (pathExists)
+                            return NtStatus.ObjectNameCollision;
                         //FSTree.CreateFile(fileName);
                         break;
 
@@ -225,19 +227,19 @@ namespace TelegramBotFS
             return NtStatus.Success;
         }
 
-        public NtStatus DeleteDirectory(string fileName, DokanFileInfo info)
+        public NtStatus DeleteDirectory(string fileName, IDokanFileInfo info)
         {
             FSTree.DeleteDirectory(fileName);
             return NtStatus.Success;
         }
 
-        public NtStatus DeleteFile(string fileName, DokanFileInfo info)
+        public NtStatus DeleteFile(string fileName, IDokanFileInfo info)
         {
             FSTree.DeleteFile(fileName);
             return NtStatus.Success;
         }
 
-        public NtStatus FindFiles(string fileName, out IList<FileInformation> files, DokanFileInfo info)
+        public NtStatus FindFiles(string fileName, out IList<FileInformation> files, IDokanFileInfo info)
         {
             if (fileName == "\\")
             {
@@ -286,7 +288,7 @@ namespace TelegramBotFS
             return NtStatus.Success;
         }
 
-        public NtStatus FindFilesWithPattern(string fileName, string searchPattern, out IList<FileInformation> files, DokanFileInfo info)
+        public NtStatus FindFilesWithPattern(string fileName, string searchPattern, out IList<FileInformation> files, IDokanFileInfo info)
         {
             if (searchPattern == "*") return FindFiles(fileName, out files, info);
             var fso0 = FSTree.GetFSObject(searchPattern);
@@ -312,13 +314,13 @@ namespace TelegramBotFS
             return FindFiles(fileName, out files, info);
         }
 
-        public NtStatus FindStreams(string fileName, out IList<FileInformation> streams, DokanFileInfo info)
+        public NtStatus FindStreams(string fileName, out IList<FileInformation> streams, IDokanFileInfo info)
         {
             streams = new List<FileInformation>();
             return NtStatus.Error;
         }
 
-        public NtStatus FlushFileBuffers(string fileName, DokanFileInfo info)
+        public NtStatus FlushFileBuffers(string fileName, IDokanFileInfo info)
         {
             try
             {
@@ -334,7 +336,7 @@ namespace TelegramBotFS
             }
         }
 
-        public NtStatus GetDiskFreeSpace(out long freeBytesAvailable, out long totalNumberOfBytes, out long totalNumberOfFreeBytes, DokanFileInfo info)
+        public NtStatus GetDiskFreeSpace(out long freeBytesAvailable, out long totalNumberOfBytes, out long totalNumberOfFreeBytes, IDokanFileInfo info)
         {
             freeBytesAvailable = new DriveInfo("C:\\").AvailableFreeSpace;
             totalNumberOfFreeBytes = new DriveInfo("C:\\").TotalFreeSpace;
@@ -342,7 +344,7 @@ namespace TelegramBotFS
             return NtStatus.Success;
         }
 
-        public NtStatus GetFileInformation(string fileName, out FileInformation fileInfo, DokanFileInfo info)
+        public NtStatus GetFileInformation(string fileName, out FileInformation fileInfo, IDokanFileInfo info)
         {
             if (fileName == "\\" || fileName == "/")
             {
@@ -379,13 +381,13 @@ namespace TelegramBotFS
             return NtStatus.Success;
         }
 
-        public NtStatus GetFileSecurity(string fileName, out FileSystemSecurity security, AccessControlSections sections, DokanFileInfo info)
+        public NtStatus GetFileSecurity(string fileName, out FileSystemSecurity security, AccessControlSections sections, IDokanFileInfo info)
         {
             security = null;
             return NtStatus.NotImplemented;
         }
 
-        public NtStatus GetVolumeInformation(out string volumeLabel, out FileSystemFeatures features, out string fileSystemName, out uint maximumComponentLength, DokanFileInfo info)
+        public NtStatus GetVolumeInformation(out string volumeLabel, out FileSystemFeatures features, out string fileSystemName, out uint maximumComponentLength, IDokanFileInfo info)
         {
             volumeLabel = "TelegramBotFS JSON storage";
             features = FileSystemFeatures.None;
@@ -394,18 +396,18 @@ namespace TelegramBotFS
             return NtStatus.Success;
         }
 
-        public NtStatus LockFile(string fileName, long offset, long length, DokanFileInfo info)
+        public NtStatus LockFile(string fileName, long offset, long length, IDokanFileInfo info)
         {
             return NtStatus.Success;
         }
 
-        public NtStatus Mounted(DokanFileInfo info)
+        public NtStatus Mounted(IDokanFileInfo info)
         {
             //Тут обработчик события, которое возникает при успешном монтировании. У меня тут ничего
             return NtStatus.Success;
         }
 
-        public NtStatus MoveFile(string oldName, string newName, bool replace, DokanFileInfo info)
+        public NtStatus MoveFile(string oldName, string newName, bool replace, IDokanFileInfo info)
         {
             var n_n = newName.Split("\\".ToCharArray());
             String nn = n_n[n_n.Length - 1];
@@ -420,7 +422,7 @@ namespace TelegramBotFS
             return NtStatus.Success;
         }
 
-        public NtStatus ReadFile(string fileName, byte[] buffer, out int bytesRead, long offset, DokanFileInfo info)
+        public NtStatus ReadFile(string fileName, byte[] buffer, out int bytesRead, long offset, IDokanFileInfo info)
         {
             string[] elements = fileName.Split("\\".ToCharArray());
             string _fname = elements[elements.Length - 1];
@@ -469,44 +471,44 @@ namespace TelegramBotFS
             return NtStatus.Success;
         }
 
-        public NtStatus SetAllocationSize(string fileName, long length, DokanFileInfo info)
+        public NtStatus SetAllocationSize(string fileName, long length, IDokanFileInfo info)
         {
             return NtStatus.NotImplemented;
         }
 
-        public NtStatus SetEndOfFile(string fileName, long length, DokanFileInfo info)
+        public NtStatus SetEndOfFile(string fileName, long length, IDokanFileInfo info)
         {
             return NtStatus.NotImplemented;
         }
 
-        public NtStatus SetFileAttributes(string fileName, FileAttributes attributes, DokanFileInfo info)
+        public NtStatus SetFileAttributes(string fileName, FileAttributes attributes, IDokanFileInfo info)
         {
             FSTree._fstree[FSTree.reverse_search[fileName]].Attributes = attributes;
             return NtStatus.Success;
         }
 
-        public NtStatus SetFileSecurity(string fileName, FileSystemSecurity security, AccessControlSections sections, DokanFileInfo info)
+        public NtStatus SetFileSecurity(string fileName, FileSystemSecurity security, AccessControlSections sections, IDokanFileInfo info)
         {
             return NtStatus.NotImplemented;
         }
 
-        public NtStatus SetFileTime(string fileName, DateTime? creationTime, DateTime? lastAccessTime, DateTime? lastWriteTime, DokanFileInfo info)
+        public NtStatus SetFileTime(string fileName, DateTime? creationTime, DateTime? lastAccessTime, DateTime? lastWriteTime, IDokanFileInfo info)
         {
             return NtStatus.Success;
         }
 
-        public NtStatus UnlockFile(string fileName, long offset, long length, DokanFileInfo info)
+        public NtStatus UnlockFile(string fileName, long offset, long length, IDokanFileInfo info)
         {
             return NtStatus.Success;
         }
 
-        public NtStatus Unmounted(DokanFileInfo info)
+        public NtStatus Unmounted(IDokanFileInfo info)
         {
             //Тут обработчики события отмонтирования. Можно, например, сбросить готовый JSON на диск. Но я этого делать не буду)
             return NtStatus.Success;
         }
 
-        public NtStatus WriteFile(string fileName, byte[] buffer, out int bytesWritten, long offset, DokanFileInfo info)
+        public NtStatus WriteFile(string fileName, byte[] buffer, out int bytesWritten, long offset, IDokanFileInfo info)
         {
             bytesWritten = 0;
             //if (info.Context == null)

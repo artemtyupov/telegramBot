@@ -35,7 +35,6 @@ namespace TelegramBot
         });
 
         private static CContext context;
-        private static readonly string databaseName = "TelegramBot";
         private static readonly string pathToDB = @"URI=file:C:\Users\Artem\Desktop\Bot\TelegramBot\database.db";
         private static readonly string Token = "632773726:AAE6L2o9zENbHrLKSTCByB_z4rpQ1-ZuMlY";
         private static readonly Telegram.Bot.TelegramBotClient Bot = new Telegram.Bot.TelegramBotClient(Token);
