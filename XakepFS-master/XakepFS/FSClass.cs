@@ -51,8 +51,9 @@ namespace TelegramBotFS
                 if (FSTree.GetFSObject(fileName) == null)
                 {
                     var gn = GenerateName(fileName);
-                    FSTree.CreateFile(fileName, gn);
                     File.Create(Program.root_path + "\\storage" + gn);
+                    FSTree.CreateFile(fileName, gn);
+                    FSTree.AddFileInDB(fileName);
                     return NtStatus.Success;
                 }
             }
@@ -84,6 +85,7 @@ namespace TelegramBotFS
                     if (File.Exists(filePath)) return NtStatus.ObjectNameCollision;
                     File.Create(filePath);
                     FSTree.CreateFile(fileName, gn);
+                    FSTree.AddFileInDB(fileName);
                 }
                 else
                     return NtStatus.ObjectNameNotFound;
@@ -166,15 +168,11 @@ namespace TelegramBotFS
                                         FSTree.DeleteDirectory(fileName);
                                     else
                                         FSTree.DeleteFile(fileName);
-
-                                    return NtStatus.Success;
                                 }
 
                                 info.IsDirectory = pathIsDirectory;
                                 info.Context = new object();
                                 // must set it to someting if you return DokanError.Success
-
-                                return NtStatus.Success;
                             }
                         }
                         else
@@ -185,8 +183,32 @@ namespace TelegramBotFS
 
                     case FileMode.CreateNew:
                         if (pathExists)
-                            return NtStatus.ObjectNameCollision;
-                        //FSTree.CreateFile(fileName);
+                            //return NtStatus.ObjectNameCollision;
+                            return NtStatus.Success;
+                        else
+                        {
+                            var gn = GenerateName(fileName);
+                            filePath = Program.root_path + "\\storage" + gn;
+                            if (info.IsDirectory)
+                            {
+                                if (Directory.Exists(filePath)) return NtStatus.ObjectNameCollision;
+                                try
+                                {
+                                    File.GetAttributes(filePath).HasFlag(FileAttributes.Directory);
+                                    return NtStatus.ObjectNameCollision;
+                                }
+                                catch (IOException)
+                                {
+                                }
+                                Directory.CreateDirectory(filePath);
+                                FSTree.CreateDirectory(fileName, gn);
+                                return NtStatus.Success;
+                            }
+                            if (File.Exists(filePath)) return NtStatus.ObjectNameCollision;
+                            File.Create(filePath);
+                            FSTree.CreateFile(fileName, gn);
+                            FSTree.AddFileInDB(fileName);
+                        }
                         break;
 
                     case FileMode.Truncate:
@@ -389,9 +411,9 @@ namespace TelegramBotFS
 
         public NtStatus GetVolumeInformation(out string volumeLabel, out FileSystemFeatures features, out string fileSystemName, out uint maximumComponentLength, IDokanFileInfo info)
         {
-            volumeLabel = "TelegramBotFS JSON storage";
+            volumeLabel = "TelegramBotFS storage";
             features = FileSystemFeatures.None;
-            fileSystemName = "TelegramBotFS JSON";
+            fileSystemName = "TelegramBotFS";
             maximumComponentLength = 512;
             return NtStatus.Success;
         }
@@ -427,9 +449,9 @@ namespace TelegramBotFS
             string[] elements = fileName.Split("\\".ToCharArray());
             string _fname = elements[elements.Length - 1];
             Program.Conn.Open();
-            string sql_file_id = $"SELECT idFileAPI FROM Files WHERE Name = {_fname}";
-            var reader = SQLLiteDB.MysqlSelectReader(sql_file_id, Program.Conn);
-
+            string sql_file_id = $"SELECT idFileAPI FROM Files WHERE Name = \"{_fname}\"";//ЗАЧЕМ
+            var reader = SQLLiteDB.SelectReader(sql_file_id, Program.Conn);
+            Program.Conn.Close();
 
             //Этот метод - просто копипаст из другого проекта. Могу сказать только то, что он работает.
             bytesRead = 0;

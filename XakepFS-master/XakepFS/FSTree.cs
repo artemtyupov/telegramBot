@@ -17,6 +17,9 @@ namespace TelegramBotFS
         public String JsonPath = "";
         public List<String> _fspaths = new List<String>();
         public Dictionary<int, TelegramBotFSObject> _fstree = new Dictionary<int, TelegramBotFSObject>();
+        public Dictionary<int, int> idsStorages = new Dictionary<int, int>();
+        public Dictionary<int, int> idsFolders = new Dictionary<int, int>();
+        public Dictionary<int, int> idsFiles = new Dictionary<int, int>();
         public Dictionary<String, int> reverse_search = new Dictionary<string, int>();
         private TelegramBotFSObject _FSRoot = new TelegramBotFSObject();
         private Timer _filesystem_sync_timer = new Timer(10000); //Один раз в минуту
@@ -24,21 +27,21 @@ namespace TelegramBotFS
         {
             RootDataDirectory = root;
             JsonPath = json_path;
-            //ParseTreeFromJson();
             ParseTreeFromDB();
-            /*
-            _filesystem_sync_timer.AutoReset = true;
-            _filesystem_sync_timer.Elapsed += delegate
-            {
-                List<String> _packed_fs_obj = new List<string>();
-                foreach (var ck in _fstree.Keys)
-                {
-                    _packed_fs_obj.Add(_fstree[ck].PackJson());
-                }
-                String _json = JsonConvert.SerializeObject(_packed_fs_obj);
-                File.WriteAllText(JsonPath, _json);
-            };
-            _filesystem_sync_timer.Start();*/
+            
+            //TODO решить нужно ли тут делать апдейт для бд раз в минуту?!
+            //_filesystem_sync_timer.AutoReset = true;
+            //_filesystem_sync_timer.Elapsed += delegate
+            //{
+            //    List<String> _packed_fs_obj = new List<string>();
+            //    foreach (var ck in _fstree.Keys)
+            //    {
+            //        _packed_fs_obj.Add(_fstree[ck].PackJson());
+            //    }
+            //    String _json = JsonConvert.SerializeObject(_packed_fs_obj);
+            //    File.WriteAllText(JsonPath, _json);
+            //};
+            //_filesystem_sync_timer.Start();
         }
 
         private void InitializeFS()
@@ -56,6 +59,7 @@ namespace TelegramBotFS
             fsobj.Name = "\\";
             fsobj.ObjectID = 0;
             fsobj.Parent = 0;
+            fsobj.Type = TelegramBotFSObject.ETypeFile.Root;
             _fspaths.Add("\\");
             _fstree.Add(0, fsobj);
             reverse_search.Add("\\", 0);
@@ -65,6 +69,9 @@ namespace TelegramBotFS
         private void ParseTreeFromDB()
         {
             //Init root
+            idsStorages.Clear();
+            idsFolders.Clear();
+            idsFiles.Clear();
             _fstree.Clear();
             _fspaths.Clear();
             reverse_search.Clear();
@@ -73,8 +80,7 @@ namespace TelegramBotFS
             //Init storages
             string sql_storages = "SELECT id, Name FROM Storage";
             Program.Conn.Open();
-            var all_storages = SQLLiteDB.MysqlSelectReader(sql_storages, Program.Conn);
-            int last_id = 0;
+            var all_storages = SQLLiteDB.SelectReader(sql_storages, Program.Conn);
             while (all_storages.Read())
             {
                 TelegramBotFSObject fs_obj_storage = new TelegramBotFSObject();
@@ -82,19 +88,23 @@ namespace TelegramBotFS
                 fs_obj_storage.Name = all_storages[1].ToString();
                 fs_obj_storage.id_DB = Convert.ToInt32(all_storages[0]);
                 int _objid = Convert.ToInt32(all_storages[0]);
+                int ols_id_storage = _objid;
                 while (_fstree.ContainsKey(_objid)) { _objid++; }
+                if (ols_id_storage != _objid)
+                    idsStorages.Add(ols_id_storage, _objid);
                 fs_obj_storage.ObjectID = _objid;
                 fs_obj_storage.Parent = 0;
                 fs_obj_storage.IsDeleted = false;
                 fs_obj_storage.IsDirectory = true;
+                fs_obj_storage.Type = TelegramBotFSObject.ETypeFile.Storage;
                 _fstree.Add(fs_obj_storage.ObjectID, fs_obj_storage);
                 String path_storage = GetPathById(fs_obj_storage.ObjectID);
                 _fspaths.Add(path_storage);
                 reverse_search.Add(path_storage, fs_obj_storage.ObjectID);
 
                 //Init folders
-                string sql_folders = $"SELECT id, Name FROM Folders WHERE idStorage = {fs_obj_storage.id_DB}";
-                var all_folders = SQLLiteDB.MysqlSelectReader(sql_folders, Program.Conn);
+                string sql_folders = $"SELECT id, Name, idFolder FROM Folders WHERE idStorage = {fs_obj_storage.id_DB}";
+                var all_folders = SQLLiteDB.SelectReader(sql_folders, Program.Conn);
                 
                 while (all_folders.Read())
                 {
@@ -103,11 +113,23 @@ namespace TelegramBotFS
                     fs_obj_folder.Name = all_folders[1].ToString();
                     fs_obj_folder.id_DB = Convert.ToInt32(all_folders[0]);
                     _objid = Convert.ToInt32(all_folders[0]);
+                    int old_id_folder = _objid;
                     while (_fstree.ContainsKey(_objid)) { _objid++; }
                     fs_obj_folder.ObjectID = _objid;
-                    fs_obj_folder.Parent = fs_obj_storage.ObjectID;
+                    if (old_id_folder != _objid)
+                        idsFolders.Add(old_id_folder, _objid);
+                    if (Convert.ToInt32(all_folders[2]) == -1)
+                        fs_obj_folder.Parent = fs_obj_storage.ObjectID;
+                    else
+                    {
+                        if (!idsFolders.ContainsKey(Convert.ToInt32(all_folders[2])))
+                            fs_obj_folder.Parent = Convert.ToInt32(all_folders[2]);
+                        else
+                            fs_obj_folder.Parent = idsFolders[Convert.ToInt32(all_folders[2])];
+                    }
                     fs_obj_folder.IsDeleted = false;
                     fs_obj_folder.IsDirectory = true;
+                    fs_obj_folder.Type = TelegramBotFSObject.ETypeFile.Folder;
                     _fstree.Add(fs_obj_folder.ObjectID, fs_obj_folder);
                     String path_folder = GetPathById(fs_obj_folder.ObjectID);
                     _fspaths.Add(path_folder);
@@ -115,7 +137,7 @@ namespace TelegramBotFS
 
                     //Init files
                     string sql_files = $"SELECT id, Name, FSAccessTime, FSWriteTime, FSCreatedTime FROM Files WHERE idFolder = {fs_obj_folder.id_DB}";
-                    var all_files = SQLLiteDB.MysqlSelectReader(sql_files, Program.Conn);
+                    var all_files = SQLLiteDB.SelectReader(sql_files, Program.Conn);
                     
                     while (all_files.Read())
                     {
@@ -124,7 +146,10 @@ namespace TelegramBotFS
                         fs_obj_file.Name = all_files[1].ToString();
                         fs_obj_file.id_DB = Convert.ToInt32(all_files[0]);
                         _objid = Convert.ToInt32(all_files[0]);
+                        int ols_id_files = _objid;
                         while (_fstree.ContainsKey(_objid)) { _objid++; }
+                        if (ols_id_files != _objid)
+                            idsFiles.Add(ols_id_files, _objid);
                         fs_obj_file.ObjectID = _objid;
                         fs_obj_file.Parent = fs_obj_folder.ObjectID;
                         fs_obj_file.IsDeleted = false;
@@ -147,78 +172,6 @@ namespace TelegramBotFS
             Program.Conn.Close();
         }
 
-        private void ParseTreeFromJson()
-        {
-            String _jc = File.ReadAllText(JsonPath);
-            if (String.IsNullOrWhiteSpace(_jc.Replace("{", "").Replace("}", "").Replace("[", "").Replace("]", "")))
-            {
-                _fstree.Clear();
-                _fspaths.Clear();
-                reverse_search.Clear();
-                InitializeFS();
-                List<String> _packed_fs_obj = new List<string>();
-                foreach (var ck in _fstree.Keys)
-                {
-                    _packed_fs_obj.Add(_fstree[ck].PackJson());
-                }
-                String _json = JsonConvert.SerializeObject(_packed_fs_obj);
-                File.WriteAllText(JsonPath, _json);
-                return;
-            }
-            List<String> _fsobjects = JsonConvert.DeserializeObject<List<String>>(_jc);
-            //Каждая строка в списке - сериализованный элемент TelegramBotFSObject
-
-            List<TelegramBotFSObject> _not_processed_objects = new List<TelegramBotFSObject>();
-            foreach (var ce in _fsobjects)
-            {
-                TelegramBotFSObject fsObject = new TelegramBotFSObject();
-                fsObject.UnpackJson(ce);
-                if (fsObject.Name == "/" && fsObject.Parent == 0)
-                {
-                    //Filesystem root
-                    _FSRoot = fsObject;
-                    _fstree.Add(0, fsObject); //У корневой папки ObjectID = 0 и Parent = 0
-                    _fspaths.Add("\\");
-                    continue;
-                }
-                //Regular object
-                //if (_fstree.ContainsKey(fsObject.Parent))
-                //{
-                    //Всё в порядке, родитель уже найден
-                    _fstree.Add(fsObject.ObjectID, fsObject);
-                    String _ap = GetPathById(fsObject.ObjectID);
-                    _fspaths.Add(_ap);
-                    reverse_search.Add(_ap, fsObject.ObjectID);
-                    continue;
-                //}
-                //else
-                //{
-                //    //Родитель объекта ещё не найден, объект потерян и будет обработан позже
-                //    _not_processed_objects.Add(fsObject);
-                //    continue;
-                //}
-            }
-            //Process missing objects
-            //bool _object_changed = true;
-            //while (_object_changed)
-            //{
-            //    _object_changed = false;
-            //    foreach (var ci in _not_processed_objects)
-            //    {
-            //        if (_fstree.ContainsKey(ci.Parent))
-            //        {
-            //            //Всё в порядке, родитель уже найден
-            //            _fstree.Add(ci.ObjectID, ci);
-            //            String _ap = GetPathById(ci.ObjectID);
-            //            _fspaths.Add(_ap);
-            //            reverse_search.Add(_ap, ci.ObjectID);
-            //            _not_processed_objects.Remove(ci);
-            //            _object_changed = true;
-            //        }
-            //    }
-            //}
-        }
-
         private String GetPathById(int id)
         {
             if (id == 0)
@@ -230,6 +183,18 @@ namespace TelegramBotFS
 
         public void CreateFile(String path, String gn)
         {
+            int i = 0;
+            if (reverse_search.ContainsKey(path))
+                path += $" ({Convert.ToString(i)})";
+            while (reverse_search.ContainsKey(path))
+            {
+                path.Replace($" ({Convert.ToString(i)})", $" ({Convert.ToString(i++)})");
+            }
+
+            int _objid = new Random().Next();
+            while (_fstree.ContainsKey(_objid)) { _objid = new Random().Next(); }
+            reverse_search.Add(path, _objid);
+
             String[] elements = path.Split("\\".ToCharArray());
             String _fname = elements[elements.Length - 1];
             String _p_dir = path.Remove(path.Length - _fname.Length - 1);
@@ -243,8 +208,6 @@ namespace TelegramBotFS
             fsobj.LastWriteTime = DateTime.Now;
             fsobj.Length = 0;
             fsobj.Name = _fname;
-            int _objid = new Random().Next();
-            while (_fstree.ContainsKey(_objid)) { _objid = new Random().Next(); }
             fsobj.ObjectID = _objid;
             if (_p_dir == "")
             {
@@ -267,7 +230,16 @@ namespace TelegramBotFS
             }
             _fstree.Add(_objid, fsobj);
             _fspaths.Add(GetPathById(_objid));
-            reverse_search.Add(path, _objid);
+
+            //Add in db
+            //int idFolder = reverse_search[_p_dir];
+            //if (idsFolders.ContainsKey(reverse_search[_p_dir]))
+            //    idFolder = idsFolders[reverse_search[_p_dir]];
+
+            //SQLLiteDB.MysqlDeleteOrInsert($"INSERT INTO Files (idFolder, idMessage, Name, idChat, FSCreatedTime, FSAccessTime, FSWriteTime, idFileAPI)" +
+            //    $" VALUES ({idFolder}, {message.MessageId}, \"{filename}\", {message.Chat.Id}, \"{DateTime.Now}\", \"{DateTime.Now}\", \"{DateTime.Now}\", \"{file_id_api}\")", Program.Conn);
+
+
             return;
         }
 
@@ -296,11 +268,10 @@ namespace TelegramBotFS
             }
             if (_p_dir != "\\")
             {
-                _p_dir = _p_dir.Remove(_p_dir.Length - 2);
+                _p_dir = _p_dir.Remove(_p_dir.Length - 2);//TODO Здесь ошибка при создании папки в папке!!!!!
             }
             fsobj.DataLocation = $"{_p_dir}\\{gn}";
             fsobj.Parent = reverse_search[_p_dir];
-            Directory.CreateDirectory(RootDataDirectory + ((_p_dir == "" || _p_dir == "\\") ? "" : _p_dir) + gn);
             _fstree.Add(_objid, fsobj);
             _fspaths.Add(GetPathById(_objid));
             reverse_search.Add(path, _objid);
@@ -346,6 +317,17 @@ namespace TelegramBotFS
         public FileSystemSecurity GetSecurity(int id)
         {
             return _fstree[id].AccessControl;
+        }
+
+        public void AddFileInDB(string filename)
+        {
+            var obj = _fstree[reverse_search[filename]];
+            //TODO !!! Проанализировать ситуацию, когда файл уже существует в бд, здесь или в updatestoragefromarchive.
+            int idMessage = -1;//TODO Можно поменять GetData. Bot будет не пересылать сообщения, а отправлять через SendMessage по fileidAPI из бд.
+            string idFileAPI = "";//TODO здесь его оставляем пустым. потом когда пользователь отправит архив storage в телегу, мы там пройдемся по всем файлам и заполним этот параметр
+            int idChat = Convert.ToInt32(SQLLiteDB.Select($"SELECT idChat FROM User WHERE Name = \"{Program.username}\"", Program.Conn));
+            SQLLiteDB.DeleteOrInsert($"INSERT INTO Files (idFolder, idMessage, Name, idChat, FSCreatedTime, FSAccessTime, FSWriteTime, idFileAPI, FSHash)" +
+                $" VALUES ({obj.Parent}, {idMessage}, \"{obj.Name}\", {idChat}, \"{obj.CreatedTime}\", \"{obj.LastAccessTime}\", \"{obj.LastWriteTime}\", \"{idFileAPI}\", \"{obj.DataLocation.Split('\\').Last()}\")", Program.Conn);
         }
     }
 }

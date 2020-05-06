@@ -1,6 +1,7 @@
 using Telegram.Bot.Types.ReplyMarkups;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using System;
 
 namespace TelegramBot
 {
@@ -12,7 +13,7 @@ namespace TelegramBot
 
         private static void ChangeInlineKeyboard(int idUser)
         {
-            var buttonItem = Funcs.GetListFolders(idUser, Program.Conn).ToArray();
+            var buttonItem = Funcs.GetListFolders(idUser, -1, Program.Conn).ToArray();
             InlineKeyboard = new InlineKeyboardMarkup(Funcs.GetInlineKeyboard(buttonItem));
         }
 
@@ -38,26 +39,41 @@ namespace TelegramBot
 
         public int getID() { return 6; }
 
-        private static void ChangeInlineKeyboard()
+        private static void ChangeInlineKeyboard(int idUser)
         {
-            InlineKeyboard = new InlineKeyboardMarkup(new[]
-            {
-                new[] // first row
-                {
-                    InlineKeyboardButton.WithCallbackData("<- Back"),
-                    InlineKeyboardButton.WithCallbackData("+"),
-                    InlineKeyboardButton.WithCallbackData("Get data"),
-                    
-                }
-            });
+            Program.Conn.Open();
+            var idFolder = Convert.ToInt32(SQLLiteDB.MysqlSelect($"SELECT id FROM Folders WHERE name = \"{Program._selectedButton}\"", Program.Conn));
+            Program.Conn.Close();
+            System.Collections.Generic.List<string> buttonItem = Funcs.GetListFolders(idUser, idFolder, Program.Conn);
+            buttonItem.Insert(0, "Add data");
+            buttonItem.Insert(0, "Get data");
+            buttonItem.Insert(0, "Add folder");
+            InlineKeyboard = new InlineKeyboardMarkup(Funcs.GetInlineKeyboard(buttonItem.ToArray()));
+            //InlineKeyboard = new InlineKeyboardMarkup(new[]
+            //{
+            //    new[] // first row
+            //    {
+            //        InlineKeyboardButton.WithCallbackData("<- Back"),
+            //        InlineKeyboardButton.WithCallbackData("Add data"),
+            //        InlineKeyboardButton.WithCallbackData("Get data"),
+            //    },
+            //     new[] // second row
+            //    {
+            //        InlineKeyboardButton.WithCallbackData("Add folder"),
+
+            //    },
+            //});
         }
         
         public void ActionMsg(TelegramBotClient Bot, Message message){}
 
         public async void ActionQuery(TelegramBotClient Bot, CallbackQuery callbackQuery)
         {
-            ChangeInlineKeyboard();
             Program._selectedButton = callbackQuery.Data;
+            Program.Conn.Open();
+            int idUser = Funcs.GetIdUserFromUsername(callbackQuery.From.Username, Program.Conn);
+            Program.Conn.Close();
+            ChangeInlineKeyboard(idUser);
             try
             { 
                 await Bot.DeleteMessageAsync(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId);
@@ -76,7 +92,7 @@ namespace TelegramBot
         
         public InlineKeyboardMarkup GetInlineKeyboardFromState(int idUser)
         {
-            ChangeInlineKeyboard();
+            ChangeInlineKeyboard(idUser);
             return InlineKeyboard;
         }
     }

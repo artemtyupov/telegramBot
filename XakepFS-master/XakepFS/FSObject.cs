@@ -11,7 +11,18 @@ namespace TelegramBotFS
 {
     class TelegramBotFSObject
     {
+        public enum ETypeFile
+        {
+            Unknown = -1,
+            Root = 0,
+            Storage = 1,
+            Folder = 2,
+            Document = 3,
+            Photo = 4,
+        }
+
         public String Name = "";
+        public ETypeFile Type = ETypeFile.Unknown;
         public bool IsDirectory = false;
         public int Parent = 0;
         public int ObjectID = 0;
@@ -24,47 +35,5 @@ namespace TelegramBotFS
         public String DataLocation = "";
         public bool IsDeleted = false;
         public int id_DB = 0;
-
-        private String PackObject(Object obj)
-        {
-            return JsonConvert.SerializeObject(obj);
-        }
-        private Object UnpackObject(String s)
-        {
-            return JsonConvert.DeserializeObject(s);
-        }
-        public String PackJson()
-        {
-            var obj = new Dictionary<String, String>();
-            obj.Add("Name", Name);
-            obj.Add("IsDirectory", PackObject(IsDirectory));
-            obj.Add("ParentID", PackObject(Parent));
-            obj.Add("ObjectID", PackObject(ObjectID));
-            obj.Add("Length", PackObject(Length));
-            obj.Add("CreatedTime", PackObject(CreatedTime));
-            obj.Add("AccessTime", PackObject(LastAccessTime));
-            obj.Add("WriteTime", PackObject(LastWriteTime));
-            obj.Add("Attributes", PackObject(Attributes));
-            obj.Add("DataLocation", DataLocation);
-            obj.Add("IsDeleted", PackObject(IsDeleted));
-            return JsonConvert.SerializeObject(obj);
-        }
-
-        public void UnpackJson(String json)
-        {
-            var obj = JsonConvert.DeserializeObject<Dictionary<String, String>>(json);
-            Name = obj["Name"];
-            IsDirectory = (bool)UnpackObject(obj["IsDirectory"]);
-            Parent = Convert.ToInt32(obj["ParentID"]);
-            ObjectID = Convert.ToInt32(obj["ObjectID"]);
-            Length = Convert.ToInt64(obj["Length"]);
-            CreatedTime = (DateTime)UnpackObject(obj["CreatedTime"]);
-            LastAccessTime = (DateTime)UnpackObject(obj["AccessTime"]);
-            LastWriteTime = (DateTime)UnpackObject(obj["WriteTime"]);
-            Attributes = (FileAttributes)Convert.ToInt32(obj["Attributes"]);//directory or normal
-            DataLocation = obj["DataLocation"];//where is file
-            IsDeleted = (bool)UnpackObject(obj["IsDeleted"]);
-            AccessControl = null;//?
-        }
     }
 }

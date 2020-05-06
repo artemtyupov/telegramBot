@@ -12,7 +12,7 @@ namespace TelegramBot
 
         private static void ChangeInlineKeyboard(int idUser)
         {
-            var buttonItem = Funcs.GetListFolders(idUser, Program.Conn).ToArray();
+            var buttonItem = Funcs.GetListFolders(idUser, -1, Program.Conn).ToArray();
             InlineKeyboard = new InlineKeyboardMarkup(Funcs.GetInlineKeyboard(buttonItem));
         }
         public void ActionMsg(TelegramBotClient Bot, Message message)

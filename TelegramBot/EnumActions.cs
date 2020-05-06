@@ -25,6 +25,7 @@ namespace TelegramBot
             Back = 11,
             GetData = 12,
             AddData = 13,
+            CreateFolderInFolder = 14,
         }
 
         public static EActions GetEnumActionFromString(string action)
@@ -48,9 +49,9 @@ namespace TelegramBot
                     res = EActions.ShowStorage;
                     break;
 
-                //case "Create folder":
-                //    res = EActions.CreateFolder;
-                //    break;
+                case "Create folder":
+                    res = EActions.CreateFolder;
+                    break;
 
                 //case "Delete folder":
                 //    res = EActions.DeleteFolder;
@@ -64,9 +65,9 @@ namespace TelegramBot
                     res = EActions.ShowFolder;
                     break;
 
-                //case "Add data":
-                //    res = EActions.AddData;
-                //    break;
+                case "Add data":
+                    res = EActions.AddData;
+                    break;
 
                 case "Get data":
                     res = EActions.GetData;
@@ -82,6 +83,10 @@ namespace TelegramBot
 
                 case "Get shared storage":
                     res = EActions.GetSharedStorage;
+                    break;
+
+                case "Add folder":
+                    res = EActions.CreateFolderInFolder;
                     break;
             }
             return res;
@@ -109,6 +114,7 @@ namespace TelegramBot
                     break;
 
                 case EActions.CreateFolder:
+                case EActions.CreateFolderInFolder:
                     res = "Enter new folder name: ";
                     break;
 
@@ -191,6 +197,10 @@ namespace TelegramBot
 
                 case EActions.GetSharedStorage:
                     res = new CGetSharedState();
+                    break;
+
+                case EActions.CreateFolderInFolder:
+                    res = new CCreateFolderInFolderState();
                     break;
             }
             return res;

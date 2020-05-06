@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
+using System.Net;
 using System.Data.SQLite;
 
 namespace TelegramBotFS
@@ -13,7 +11,7 @@ namespace TelegramBotFS
         static public string root_path = "";
         static public string username = "";
         private static readonly string pathToDB = @"URI=file:C:\Users\Artem\Desktop\Bot\TelegramBot\database.db";
-        public static readonly SQLiteConnection Conn = SQLLiteDB.OpenMysqlConnection(pathToDB);
+        public static readonly SQLiteConnection Conn = SQLLiteDB.OpenConnection(pathToDB);
 
         static void Main(string[] args)
         {

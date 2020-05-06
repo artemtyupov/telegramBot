@@ -1,22 +1,23 @@
-using System;
+﻿using System;
 using Telegram.Bot.Types.ReplyMarkups;
 using System.Collections.Generic;
 using System.Linq;
 using MySql.Data.MySqlClient;
 using Telegram.Bot.Types;
 using System.Data.SQLite;
+using System.IO;
+
 
 namespace TelegramBot
 {
     public static class Funcs
     {
-        public static List<string> GetListFolders(int idUser, SQLiteConnection conn)
+        public static List<string> GetListFolders(int idUser, int idFolder, SQLiteConnection conn)
         {
             var namesFolders = new List<string> {"<- Back"};
             conn.Open();
             var idStorage = GetIdStorageFromIdUser(idUser, conn);
-            var sqlToShowFolders = "";
-            sqlToShowFolders = $"SELECT Name FROM Folders WHERE idStorage = {idStorage}";
+            var sqlToShowFolders = $"SELECT Name FROM Folders WHERE idStorage = {idStorage} and idFolder = {idFolder}";
             var command = new SQLiteCommand(sqlToShowFolders, conn);
             var reader = command.ExecuteReader();
             while (reader.Read())
@@ -31,7 +32,7 @@ namespace TelegramBot
             conn.Close();
             return namesFolders;
         }
-        
+
         public static List<string> GetListFiles(int idUser, int idFolder, SQLiteConnection conn)
         {
             var namesFolders = new List<string> {"<- Back"};
@@ -142,12 +143,12 @@ namespace TelegramBot
             return shareKey;
         }
 
-        public static void Registration(string name, SQLiteConnection conn)
+        public static void Registration(string name, long idChat, SQLiteConnection conn)
         {
             try
             {
                 conn.Open();
-                var sqlToInsertNewUser = $"INSERT INTO User (name) VALUES (\"{name}\")";
+                var sqlToInsertNewUser = $"INSERT INTO User (name, idChat) VALUES (\"{name}\", {idChat})";
                 var command = new SQLiteCommand(sqlToInsertNewUser, conn);
                 command.ExecuteNonQuery();
                 conn.Close();
@@ -277,7 +278,7 @@ namespace TelegramBot
             var idStorageNew = Convert.ToInt32(SQLLiteDB.MysqlSelect($"SELECT id FROM storage WHERE idShared = \"{shareKey}\"", Program.Conn));
             foreach (var val in namesFolder)
             {
-                SQLLiteDB.MysqlDeleteOrInsert($"INSERT INTO Folders (idStorage, Name) VALUES({idStorageNew}, \"{val}\");", Program.Conn);
+                SQLLiteDB.MysqlDeleteOrInsert($"INSERT INTO Folders (idStorage, idFolder, Name) VALUES({idStorageNew}, {-1}, \"{val}\");", Program.Conn);//TODO изменение при шаринге когда папка в папке
                 var idFolderOld = Convert.ToInt32(SQLLiteDB.MysqlSelect($"SELECT id FROM Folders WHERE idStorage = {idStorageOld} and Name = \"{val}\"", Program.Conn));
                 var idFolderNew = Convert.ToInt32(SQLLiteDB.MysqlSelect($"SELECT id FROM Folders WHERE idStorage = {idStorageNew} and Name = \"{val}\"", Program.Conn));
                 sqlKey = $"Select idMessage, Name, idChat FROM Files WHERE idFolder = \"{idFolderOld}\"";
@@ -301,5 +302,7 @@ namespace TelegramBot
             }
             conn.Close();
         }
+
+        
     }
 }
