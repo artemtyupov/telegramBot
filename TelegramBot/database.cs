@@ -4,14 +4,14 @@ namespace TelegramBot
 {
     public static class Database
     {
-        public static MySqlConnection OpenMysqlConnection(string dbName)
+        public static MySqlConnection OpenSQLiteConnection(string dbName)
         {
             string connString = $@"Server=127.0.0.1;port=3306;Database={dbName};Uid=root;password=Tosha007";
             var conn = new MySqlConnection(connString);
             return conn;
         }
 
-        public static string MysqlSelect(string sql, MySqlConnection conn)
+        public static string SQLiteSelect(string sql, MySqlConnection conn)
         {
             var result = "";
             var command = new MySqlCommand(sql, conn);
@@ -27,7 +27,7 @@ namespace TelegramBot
             return result;
         }
         
-        public static void MysqlDeleteOrInsert(string sql, MySqlConnection conn)
+        public static void SQLiteDeleteOrInsert(string sql, MySqlConnection conn)
         {
             var command = new MySqlCommand(sql, conn);
             command.ExecuteNonQuery();

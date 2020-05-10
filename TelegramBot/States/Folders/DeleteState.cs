@@ -22,7 +22,7 @@ namespace TelegramBot
         public async void ActionQuery(TelegramBotClient Bot, CallbackQuery callbackQuery)
         {
             Program.Conn.Open();
-            SQLLiteDB.MysqlDeleteOrInsert($"DELETE FROM Folders WHERE Name = \"{callbackQuery.Data}\" ", Program.Conn);
+            SQLLiteDB.SQLiteDeleteOrInsert($"DELETE FROM Folders WHERE Name = \"{callbackQuery.Data}\" ", Program.Conn);
             Program.Conn.Close();
             try
             { 

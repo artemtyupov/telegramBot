@@ -4,13 +4,21 @@ namespace TelegramBot
 {
     public static class SQLLiteDB
     {
-        public static SQLiteConnection OpenMysqlConnection(string pathToDB)
+        public static Program Program
+        {
+            get => default(Program);
+            set
+            {
+            }
+        }
+
+        public static SQLiteConnection OpenSQLiteConnection(string pathToDB)
         {
             SQLiteConnection objConnection = new SQLiteConnection(pathToDB);
             return objConnection;
         }
         
-        public static string MysqlSelect(string sql, SQLiteConnection conn)
+        public static string SQLiteSelect(string sql, SQLiteConnection conn)
         {
             var result = "";
             var command = new SQLiteCommand(sql, conn);
@@ -26,7 +34,7 @@ namespace TelegramBot
             return result;
         }
 
-        public static void MysqlDeleteOrInsert(string sql, SQLiteConnection conn)
+        public static void SQLiteDeleteOrInsert(string sql, SQLiteConnection conn)
         {
             var command = new SQLiteCommand(sql, conn);
             command.ExecuteNonQuery();

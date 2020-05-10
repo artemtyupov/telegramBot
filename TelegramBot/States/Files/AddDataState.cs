@@ -17,7 +17,7 @@ namespace TelegramBot
             if (message.Type != MessageType.Text)
             {
                 Program.Conn.Open();
-                var idFolder = Convert.ToInt32(SQLLiteDB.MysqlSelect($"SELECT id FROM Folders WHERE Name = \"{Program._selectedButton}\"", Program.Conn));
+                var idFolder = Convert.ToInt32(SQLLiteDB.SQLiteSelect($"SELECT id FROM Folders WHERE Name = \"{Program._selectedButton}\"", Program.Conn));
                 
                 string file_id_api = "";
                 string filename = "";
@@ -47,7 +47,7 @@ namespace TelegramBot
                     }
                 }
                 
-                SQLLiteDB.MysqlDeleteOrInsert($"INSERT INTO Files (idFolder, idMessage, Name, idChat, FSCreatedTime, FSAccessTime, FSWriteTime, idFileAPI) VALUES ({idFolder}, {message.MessageId}, \"{filename}\", {message.Chat.Id}, \"{DateTime.Now}\", \"{DateTime.Now}\", \"{DateTime.Now}\", \"{file_id_api}\")", Program.Conn);
+                SQLLiteDB.SQLiteDeleteOrInsert($"INSERT INTO Files (idFolder, idMessage, Name, idChat, FSCreatedTime, FSAccessTime, FSWriteTime, idFileAPI) VALUES ({idFolder}, {message.MessageId}, \"{filename}\", {message.Chat.Id}, \"{DateTime.Now}\", \"{DateTime.Now}\", \"{DateTime.Now}\", \"{file_id_api}\")", Program.Conn);
                 Program.Conn.Close();
                 await Bot.SendTextMessageAsync(
                     message.Chat.Id,

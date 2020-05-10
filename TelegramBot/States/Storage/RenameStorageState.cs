@@ -19,7 +19,7 @@ namespace TelegramBot
         public void ActionMsg(TelegramBotClient Bot, Message message)
         {
             Program.Conn.Open();
-            SQLLiteDB.MysqlDeleteOrInsert($"UPDATE Storage SET Name = \"{message.Text}\" WHERE Name = \"{Program._selectedButton}\"", Program.Conn);
+            SQLLiteDB.SQLiteDeleteOrInsert($"UPDATE Storage SET Name = \"{message.Text}\" WHERE Name = \"{Program._selectedButton}\"", Program.Conn);
             Program.Conn.Close();
         }
 

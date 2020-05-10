@@ -6,48 +6,48 @@ namespace TelegramBot
 {
     public class CContext
     {
-        private IState st;
+        private IState state;
         private IState prevSt;
         
         public CContext(IState state)
         {
-            st = state;
+            this.state = state;
         }
 
         public void SavePrevState()
         {
-            prevSt = st;
+            prevSt = state;
         }
         public void ChangeOnPrevState()
         {
-            st = st.ChangeOnPrevState();
+            state = state.ChangeOnPrevState();
         }
         
         public void ChangeState(IState state)
         {
-            st = state;
+            this.state = state;
         }
 
         public void ActionMsgContext(TelegramBotClient Bot, Message msg)
         {
-            st.ActionMsg(Bot, msg);
+            state.ActionMsg(Bot, msg);
         }
         
         public void ActionQueryContext(TelegramBotClient Bot, CallbackQuery callbackQuery)
         {
-            st.ActionQuery(Bot, callbackQuery);
+            state.ActionQuery(Bot, callbackQuery);
         }
 
         public InlineKeyboardMarkup GetInlineKeyboardFromContext(int idUser)
         {
-            return st.GetInlineKeyboardFromState(idUser);
+            return state.GetInlineKeyboardFromState(idUser);
         }
 
         public IState GetTypeState()
         {
-            return st;
+            return state;
         }
 
-        public int getID() { return st.getID(); }
+        public int getID() { return state.getID(); }
     }
 }

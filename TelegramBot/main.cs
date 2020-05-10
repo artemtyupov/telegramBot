@@ -43,7 +43,7 @@ namespace TelegramBot
         private static readonly string pathToDB = @"URI=file:C:\Users\Artem\Desktop\Bot\TelegramBot\database.db";
         private static readonly string Token = "632773726:AAE6L2o9zENbHrLKSTCByB_z4rpQ1-ZuMlY";
         private static readonly Telegram.Bot.TelegramBotClient Bot = new Telegram.Bot.TelegramBotClient(Token);
-        public static readonly SQLiteConnection Conn = SQLLiteDB.OpenMysqlConnection(pathToDB);
+        public static readonly SQLiteConnection Conn = SQLLiteDB.OpenSQLiteConnection(pathToDB);
         public static string _selectedButton = "";
         public static string _selectedStorage = "";
         public static bool FSState = false;
@@ -381,8 +381,8 @@ namespace TelegramBot
                 Program.Conn.Open();
                 //TODO находим файл по хешу, также нужно каждый файл переотправить обратно в телегу, записать его fileid и прочее. Еще разобраться с разрешением и именами,
                 //стоит это в бд сохранять и тут хеши менять на нормалньые имена при отправке
-                //int idFile = Convert.ToInt32(SQLLiteDB.MysqlSelect($"SELECT id FROM Files WHERE FSHash = \"{name}\"", Program.Conn));
-                //SQLLiteDB.MysqlDeleteOrInsert($"UPDATE Files SET Name = \"{msg.Text}\" WHERE Name = \"{Program._selectedButton}\"", Program.Conn);
+                //int idFile = Convert.ToInt32(SQLLiteDB.SQLiteSelect($"SELECT id FROM Files WHERE FSHash = \"{name}\"", Program.Conn));
+                //SQLLiteDB.SQLiteDeleteOrInsert($"UPDATE Files SET Name = \"{msg.Text}\" WHERE Name = \"{Program._selectedButton}\"", Program.Conn);
                 Program.Conn.Close();
             }
         }

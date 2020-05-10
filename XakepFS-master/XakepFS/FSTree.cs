@@ -236,7 +236,7 @@ namespace TelegramBotFS
             //if (idsFolders.ContainsKey(reverse_search[_p_dir]))
             //    idFolder = idsFolders[reverse_search[_p_dir]];
 
-            //SQLLiteDB.MysqlDeleteOrInsert($"INSERT INTO Files (idFolder, idMessage, Name, idChat, FSCreatedTime, FSAccessTime, FSWriteTime, idFileAPI)" +
+            //SQLLiteDB.SQLiteDeleteOrInsert($"INSERT INTO Files (idFolder, idMessage, Name, idChat, FSCreatedTime, FSAccessTime, FSWriteTime, idFileAPI)" +
             //    $" VALUES ({idFolder}, {message.MessageId}, \"{filename}\", {message.Chat.Id}, \"{DateTime.Now}\", \"{DateTime.Now}\", \"{DateTime.Now}\", \"{file_id_api}\")", Program.Conn);
 
 

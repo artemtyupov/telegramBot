@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="TelegramBotFS.Program" Collapsed="true">
+    <Position X="4.25" Y="1.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAgAAAAABAEAAAAAAAAAAAAABgAAAAA=</HashCode>
+      <FileName>Program.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="TelegramBotFS.SQLLiteDB" Collapsed="true">
+    <Position X="2.25" Y="2.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAABAAAAAAAAAAAQAAAAAQAAAAQgAAAAA=</HashCode>
+      <FileName>SQLLite.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="TelegramBotFS.TelegramBotFSClass" Collapsed="true">
+    <Position X="8.25" Y="2" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AQQUAAABAIAAQAAAABQABCBAhQQAQACAAAEBKEABBRA=</HashCode>
+      <FileName>FSClass.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="TelegramBotFS.TelegramBotFSObject" Collapsed="true">
+    <Position X="3.5" Y="3.75" Width="1.75" />
+    <Compartments>
+      <Compartment Name="Nested Types" Collapsed="false" />
+    </Compartments>
+    <NestedTypes>
+      <Enum Name="TelegramBotFS.TelegramBotFSObject.ETypeFile" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>FSObject.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AAAgAAAAIAAAAAAARAAAQARQAIAAAgAAAQEAAQAAAAE=</HashCode>
+      <FileName>FSObject.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="TelegramBotFS.TelegramBotFSTree" Collapsed="true">
+    <Position X="6.75" Y="3.75" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AEAAAAEIAAACQAAIARRAAAABAAwAAAAAAAUAAIAAgQQ=</HashCode>
+      <FileName>FSTree.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

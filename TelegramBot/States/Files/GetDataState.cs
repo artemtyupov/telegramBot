@@ -16,7 +16,7 @@ namespace TelegramBot
         {
             Program.Conn.Open();
             var idStorage = Funcs.GetIdStorageFromIdUser(idUser, Program.Conn);
-            var idFolder = Convert.ToInt32(SQLLiteDB.MysqlSelect($"SELECT id FROM Folders WHERE idStorage = {idStorage} and Name = \"{Program._selectedButton}\"", Program.Conn));
+            var idFolder = Convert.ToInt32(SQLLiteDB.SQLiteSelect($"SELECT id FROM Folders WHERE idStorage = {idStorage} and Name = \"{Program._selectedButton}\"", Program.Conn));
             Program.Conn.Close();
             var namesFiles = Funcs.GetListFiles(idUser, idFolder, Program.Conn);
             InlineKeyboard = new InlineKeyboardMarkup(Funcs.GetInlineKeyboard(namesFiles.ToArray()));
@@ -29,8 +29,8 @@ namespace TelegramBot
             Program.Conn.Open();
             var idStorage = Funcs.GetIdStorageFromIdUser(Funcs.GetIdUserFromUsername(callbackQuery.From.Username, Program.Conn), Program.Conn);
             var idFolder = Funcs.GetIdFolderFromIdStorage(idStorage, Program.Conn);
-            var idMessage = Convert.ToInt32(SQLLiteDB.MysqlSelect($"SELECT idMessage FROM Files WHERE Name = \"{callbackQuery.Data}\" and idFolder = {idFolder}", Program.Conn));
-            var idChat = Convert.ToInt64(SQLLiteDB.MysqlSelect($"SELECT idChat FROM Files WHERE idMessage = {idMessage} and idFolder = {idFolder}", Program.Conn));
+            var idMessage = Convert.ToInt32(SQLLiteDB.SQLiteSelect($"SELECT idMessage FROM Files WHERE Name = \"{callbackQuery.Data}\" and idFolder = {idFolder}", Program.Conn));
+            var idChat = Convert.ToInt64(SQLLiteDB.SQLiteSelect($"SELECT idChat FROM Files WHERE idMessage = {idMessage} and idFolder = {idFolder}", Program.Conn));
             var test = new ChatId(idChat);
             Program.Conn.Close();
             try

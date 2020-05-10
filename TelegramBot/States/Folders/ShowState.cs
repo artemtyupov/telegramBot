@@ -42,7 +42,7 @@ namespace TelegramBot
         private static void ChangeInlineKeyboard(int idUser)
         {
             Program.Conn.Open();
-            var idFolder = Convert.ToInt32(SQLLiteDB.MysqlSelect($"SELECT id FROM Folders WHERE name = \"{Program._selectedButton}\"", Program.Conn));
+            var idFolder = Convert.ToInt32(SQLLiteDB.SQLiteSelect($"SELECT id FROM Folders WHERE name = \"{Program._selectedButton}\"", Program.Conn));
             Program.Conn.Close();
             System.Collections.Generic.List<string> buttonItem = Funcs.GetListFolders(idUser, idFolder, Program.Conn);
             buttonItem.Insert(0, "Add data");

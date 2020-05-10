@@ -12,6 +12,14 @@ namespace TelegramBot
 {
     public static class Funcs
     {
+        public static Program Program
+        {
+            get => default(Program);
+            set
+            {
+            }
+        }
+
         public static List<string> GetListFolders(int idUser, int idFolder, SQLiteConnection conn)
         {
             var namesFolders = new List<string> {"<- Back"};
@@ -260,12 +268,12 @@ namespace TelegramBot
             var name = reader[0];
             reader.Close();
 
-            var idUser = Convert.ToInt32(SQLLiteDB.MysqlSelect($"SELECT id FROM User WHERE name = \"{message.Chat.Username}\"", Program.Conn));
+            var idUser = Convert.ToInt32(SQLLiteDB.SQLiteSelect($"SELECT id FROM User WHERE name = \"{message.Chat.Username}\"", Program.Conn));
             var shareKey = Funcs.GetNewShareKey(Program.Conn);
-            SQLLiteDB.MysqlDeleteOrInsert($"INSERT INTO Storage (Name, idUser, idShared) VALUES(\"{name + " (Shared)"}\", {idUser}, \"{shareKey}\");", Program.Conn);
+            SQLLiteDB.SQLiteDeleteOrInsert($"INSERT INTO Storage (Name, idUser, idShared) VALUES(\"{name + " (Shared)"}\", {idUser}, \"{shareKey}\");", Program.Conn);
 
             //Add folders and files
-            var idStorageOld = Convert.ToInt32(SQLLiteDB.MysqlSelect($"SELECT id FROM storage WHERE idShared = \"{message.Text}\"", Program.Conn));
+            var idStorageOld = Convert.ToInt32(SQLLiteDB.SQLiteSelect($"SELECT id FROM storage WHERE idShared = \"{message.Text}\"", Program.Conn));
             sqlKey = $"Select Name FROM Folders WHERE idStorage = \"{idStorageOld}\"";
             command = new SQLiteCommand(sqlKey, conn);
             var readerFolder = command.ExecuteReader();
@@ -275,12 +283,12 @@ namespace TelegramBot
                 namesFolder.Add(readerFolder.GetString(0));
             }
             readerFolder.Close();
-            var idStorageNew = Convert.ToInt32(SQLLiteDB.MysqlSelect($"SELECT id FROM storage WHERE idShared = \"{shareKey}\"", Program.Conn));
+            var idStorageNew = Convert.ToInt32(SQLLiteDB.SQLiteSelect($"SELECT id FROM storage WHERE idShared = \"{shareKey}\"", Program.Conn));
             foreach (var val in namesFolder)
             {
-                SQLLiteDB.MysqlDeleteOrInsert($"INSERT INTO Folders (idStorage, idFolder, Name) VALUES({idStorageNew}, {-1}, \"{val}\");", Program.Conn);//TODO изменение при шаринге когда папка в папке
-                var idFolderOld = Convert.ToInt32(SQLLiteDB.MysqlSelect($"SELECT id FROM Folders WHERE idStorage = {idStorageOld} and Name = \"{val}\"", Program.Conn));
-                var idFolderNew = Convert.ToInt32(SQLLiteDB.MysqlSelect($"SELECT id FROM Folders WHERE idStorage = {idStorageNew} and Name = \"{val}\"", Program.Conn));
+                SQLLiteDB.SQLiteDeleteOrInsert($"INSERT INTO Folders (idStorage, idFolder, Name) VALUES({idStorageNew}, {-1}, \"{val}\");", Program.Conn);//TODO изменение при шаринге когда папка в папке
+                var idFolderOld = Convert.ToInt32(SQLLiteDB.SQLiteSelect($"SELECT id FROM Folders WHERE idStorage = {idStorageOld} and Name = \"{val}\"", Program.Conn));
+                var idFolderNew = Convert.ToInt32(SQLLiteDB.SQLiteSelect($"SELECT id FROM Folders WHERE idStorage = {idStorageNew} and Name = \"{val}\"", Program.Conn));
                 sqlKey = $"Select idMessage, Name, idChat FROM Files WHERE idFolder = \"{idFolderOld}\"";
                 command = new SQLiteCommand(sqlKey, conn);
                 var readerFile = command.ExecuteReader();
@@ -296,7 +304,7 @@ namespace TelegramBot
 
                 foreach (var pair in mapFiles.Zip(dict, Tuple.Create))
                 {
-                    SQLLiteDB.MysqlDeleteOrInsert($"INSERT INTO Files (idFolder, idMessage, Name, idChat) VALUES ({idFolderNew}, {pair.Item1.Key}, \"{pair.Item2.Value}\", {pair.Item2.Key})", Program.Conn);
+                    SQLLiteDB.SQLiteDeleteOrInsert($"INSERT INTO Files (idFolder, idMessage, Name, idChat) VALUES ({idFolderNew}, {pair.Item1.Key}, \"{pair.Item2.Value}\", {pair.Item2.Key})", Program.Conn);
                 }
 
             }
