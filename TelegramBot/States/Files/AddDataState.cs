@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 using Telegram.Bot;
@@ -40,9 +40,9 @@ namespace TelegramBot
                         Program.Conn.Close();
                         await Bot.SendTextMessageAsync(
                             message.Chat.Id,
-                            "Your file didnt added.\n" +
-                            "Please enter the caption, when you add photo(better with extension)\n" +
-                            "Choose action:",
+                            "Файл не добавлен.\n" +
+                            "Пожалуйста введите название файла с расширением в подпись\n" +
+                            "Выберите действие:",
                             replyMarkup: new CShowState().GetInlineKeyboardFromState(message.From.Id));
                     }
                 }
@@ -51,10 +51,9 @@ namespace TelegramBot
                 Program.Conn.Close();
                 await Bot.SendTextMessageAsync(
                     message.Chat.Id,
-                    "Your file added.\n" +
-                    "Choose action:",
+                    "Файл добавлен.\n" +
+                    "Выберите действие:",
                     replyMarkup: new CShowState().GetInlineKeyboardFromState(message.From.Id));
-                
             }
         }
 

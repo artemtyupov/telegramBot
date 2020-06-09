@@ -8,6 +8,7 @@ using System.Security.AccessControl;
 using System.Threading.Tasks;
 using System.Timers;
 using DokanNet;
+using System.Security.Cryptography;
 
 namespace TelegramBotFS
 {
@@ -66,6 +67,15 @@ namespace TelegramBotFS
             _FSRoot = fsobj;
         }
 
+        private String GenerateName(String tgt)
+        {
+            string res = "";
+            MD5CryptoServiceProvider md5 = new MD5CryptoServiceProvider();
+            var b = md5.ComputeHash(Encoding.UTF8.GetBytes(tgt + DateTime.Now.ToBinary().ToString()));
+            foreach (var cb in b) { res += cb.ToString("X2"); }
+            return "\\" + res;
+        }
+
         private void ParseTreeFromDB()
         {
             //Init root
@@ -77,9 +87,13 @@ namespace TelegramBotFS
             reverse_search.Clear();
             InitializeFS();
 
-            //Init storages
-            string sql_storages = "SELECT id, Name FROM Storage";
             Program.Conn.Open();
+            //Get id User
+            int idUser = Convert.ToInt32(SQLLiteDB.Select($"SELECT id FROM User WHERE name = \"{Program.username}\"", Program.Conn));
+            
+            //Init storages
+            string sql_storages = $"SELECT id, Name FROM Storage WHERE idUser = {idUser}";
+            
             var all_storages = SQLLiteDB.SelectReader(sql_storages, Program.Conn);
             while (all_storages.Read())
             {
@@ -181,7 +195,7 @@ namespace TelegramBotFS
             return (GetPathById(_fstree[id].Parent) + "\\" + _fstree[id].Name).Replace("\\\\", "\\").Replace("\\\\", "\\");
         }
 
-        public void CreateFile(String path, String gn)
+        public void CreateFile(String path, String gn, bool need_create_in_dir)
         {
             int i = 0;
             if (reverse_search.ContainsKey(path))
@@ -211,13 +225,52 @@ namespace TelegramBotFS
             fsobj.ObjectID = _objid;
             if (_p_dir == "")
             {
-                
+                var path_def = Program.root_path + "\\storage" + gn;
+                File.Create(path_def);
+                fsobj.DataLocation = $"{_p_dir}\\{gn}";
             }
             else if (_p_dir != "\\")
             {
-                //_p_dir = _p_dir.Remove(_p_dir.Length - 2);
+                var names = _p_dir.Split('\\');
+                var last_path = Program.root_path + "\\storage";
+                foreach (var name in names)
+                {
+                    if (name == "")
+                        continue;
+
+                    foreach (var obj in _fstree)
+                    {
+                        if (obj.Value.Name == name)
+                        {
+                            var find_gn = obj.Value.DataLocation.Split('\\');
+                            var gn_ = "\\" + find_gn[find_gn.Length - 1];
+                            if (gn_ == "\\")
+                                gn_ = GenerateName(name);
+                            last_path += gn_;
+                            if (Directory.Exists(last_path))
+                                continue;
+                            Directory.CreateDirectory(last_path);
+                            break;
+                        }
+                    }
+                }
+                var path_nodef = last_path + gn;
+                if (need_create_in_dir)
+                    File.Create(path_nodef);
+                var find_dataloc_arr = path_nodef.Split('\\');
+                var dataloc_path = "";
+                var flag_loc = false;
+                foreach (var location in find_dataloc_arr)
+                {
+                    if (flag_loc)
+                        dataloc_path += "\\" + location;
+
+                    if (location == "storage")
+                        flag_loc = true;
+                }
+                fsobj.DataLocation = dataloc_path;
+
             }
-            fsobj.DataLocation = $"{_p_dir}\\{gn}";
             //File.Create(RootDataDirectory + ((_p_dir == "" || _p_dir == "\\") ? "" : _p_dir) + gn);
             if (_p_dir == "")
             {
@@ -265,12 +318,51 @@ namespace TelegramBotFS
             {
                 _p_dir = "\\";
                 fsobj.Parent = 0;
+                var path_def = Program.root_path + "\\storage" + gn;
+                Directory.CreateDirectory(path_def);
+                fsobj.DataLocation = $"{_p_dir}\\{gn}";
             }
             if (_p_dir != "\\")
             {
-                _p_dir = _p_dir.Remove(_p_dir.Length - 2);//TODO Здесь ошибка при создании папки в папке!!!!!
+                var names = _p_dir.Split('\\');
+                var last_path = Program.root_path + "\\storage";
+                foreach (var name in names)
+                {
+                    if (name == "")
+                        continue;
+
+                    foreach (var obj in _fstree)
+                    {
+                        if (obj.Value.Name == name)
+                        {
+                            var find_gn = obj.Value.DataLocation.Split('\\');
+                            var gn_ = "\\" + find_gn[find_gn.Length - 1];
+                            if (gn_ == "\\")
+                                gn_ = GenerateName(name);
+                            last_path += gn_;
+                            if (Directory.Exists(last_path))
+                                continue;
+
+                            Directory.CreateDirectory(last_path);
+                            break;
+                        }
+                    }
+                }
+                var path_nodef = last_path + gn;
+                Directory.CreateDirectory(path_nodef);
+                var find_dataloc_arr = path_nodef.Split('\\');
+                var dataloc_path = "";
+                var flag_loc = false;
+                foreach (var location in find_dataloc_arr)
+                {
+                    if (flag_loc)
+                        dataloc_path += "\\" + location;
+                     
+                    if (location == "storage")
+                        flag_loc = true;
+                }
+                fsobj.DataLocation = dataloc_path;
             }
-            fsobj.DataLocation = $"{_p_dir}\\{gn}";
             fsobj.Parent = reverse_search[_p_dir];
             _fstree.Add(_objid, fsobj);
             _fspaths.Add(GetPathById(_objid));
@@ -314,6 +406,13 @@ namespace TelegramBotFS
             return _fstree[reverse_search[path]];
         }
 
+        public void DeleteFSObject(String path)
+        {
+            if (!reverse_search.ContainsKey(path)) return;
+            _fstree.Remove(reverse_search[path]);
+            reverse_search.Remove(path);
+        }
+
         public FileSystemSecurity GetSecurity(int id)
         {
             return _fstree[id].AccessControl;
@@ -325,9 +424,11 @@ namespace TelegramBotFS
             //TODO !!! Проанализировать ситуацию, когда файл уже существует в бд, здесь или в updatestoragefromarchive.
             int idMessage = -1;//TODO Можно поменять GetData. Bot будет не пересылать сообщения, а отправлять через SendMessage по fileidAPI из бд.
             string idFileAPI = "";//TODO здесь его оставляем пустым. потом когда пользователь отправит архив storage в телегу, мы там пройдемся по всем файлам и заполним этот параметр
+            Program.Conn.Open();
             int idChat = Convert.ToInt32(SQLLiteDB.Select($"SELECT idChat FROM User WHERE Name = \"{Program.username}\"", Program.Conn));
             SQLLiteDB.DeleteOrInsert($"INSERT INTO Files (idFolder, idMessage, Name, idChat, FSCreatedTime, FSAccessTime, FSWriteTime, idFileAPI, FSHash)" +
                 $" VALUES ({obj.Parent}, {idMessage}, \"{obj.Name}\", {idChat}, \"{obj.CreatedTime}\", \"{obj.LastAccessTime}\", \"{obj.LastWriteTime}\", \"{idFileAPI}\", \"{obj.DataLocation.Split('\\').Last()}\")", Program.Conn);
+            Program.Conn.Close();
         }
     }
 }

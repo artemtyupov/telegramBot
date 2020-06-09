@@ -1,31 +1,27 @@
 ﻿using System;
+using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
 namespace TelegramBot
 {
-    public class CDeleteState : IState
+    public class CDeleteDataState : IState
     {
         private static InlineKeyboardMarkup InlineKeyboard;
 
-        public int getID() { return 14; }
+        public int getID() { return 17; }
 
-        private static void ChangeInlineKeyboard(int idUser)
-        {
-            var buttonItem = Funcs.GetListFolders(idUser, -1, Program.Conn).ToArray();
-            InlineKeyboard = new InlineKeyboardMarkup(Funcs.GetInlineKeyboard(buttonItem));
-        }
-        
-        public void ActionMsg(TelegramBotClient Bot, Message message){}
+        public async void ActionMsg(TelegramBotClient Bot, Message message) { }
 
-        public async void ActionQuery(TelegramBotClient Bot, CallbackQuery callbackQuery)
+        async public void ActionQuery(TelegramBotClient Bot, CallbackQuery callbackQuery)
         {
             Program.Conn.Open();
-            SQLLiteDB.SQLiteDeleteOrInsert($"DELETE FROM Folders WHERE Name = \"{callbackQuery.Data}\" ", Program.Conn);
+            var idFolder = Convert.ToInt32(SQLLiteDB.SQLiteSelect($"SELECT id FROM Files WHERE Name = \"{Program._selectedButton}\"", Program.Conn));
+            SQLLiteDB.SQLiteDeleteOrInsert($"DELETE FROM Files WHERE Name = \"{callbackQuery.Data}\" and idFolder = {idFolder} ", Program.Conn);
             Program.Conn.Close();
             try
-            { 
+            {
                 await Bot.DeleteMessageAsync(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId);
                 await Bot.SendTextMessageAsync(
                     callbackQuery.Message.Chat.Id,
@@ -34,15 +30,14 @@ namespace TelegramBot
             }
             catch { }
         }
-        
+
         public IState ChangeOnPrevState()
         {
-            return new CMainMenuState();
+            return new CChoosedToShowState();
         }
-        
+
         public InlineKeyboardMarkup GetInlineKeyboardFromState(int idUser)
         {
-            ChangeInlineKeyboard(idUser);
             return InlineKeyboard;
         }
     }

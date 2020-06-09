@@ -1,4 +1,4 @@
-using Telegram.Bot.Types.ReplyMarkups;
+﻿using Telegram.Bot.Types.ReplyMarkups;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
@@ -27,7 +27,7 @@ namespace TelegramBot
                 await Bot.DeleteMessageAsync(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId);
                 await Bot.SendTextMessageAsync(
                     callbackQuery.Message.Chat.Id,
-                    "Choose action:",
+                    "Выберите действие:",
                     replyMarkup: Program.InlKey);
             }
             catch { }

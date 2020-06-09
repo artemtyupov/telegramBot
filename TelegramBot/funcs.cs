@@ -22,7 +22,7 @@ namespace TelegramBot
 
         public static List<string> GetListFolders(int idUser, int idFolder, SQLiteConnection conn)
         {
-            var namesFolders = new List<string> {"<- Back"};
+            var namesFolders = new List<string> {"Назад"};
             conn.Open();
             var idStorage = GetIdStorageFromIdUser(idUser, conn);
             var sqlToShowFolders = $"SELECT Name FROM Folders WHERE idStorage = {idStorage} and idFolder = {idFolder}";
@@ -43,7 +43,7 @@ namespace TelegramBot
 
         public static List<string> GetListFiles(int idUser, int idFolder, SQLiteConnection conn)
         {
-            var namesFolders = new List<string> {"<- Back"};
+            var namesFolders = new List<string> {"Назад"};
             conn.Open();
             var idStorage = GetIdStorageFromIdUser(idUser, conn);
             var sqlToShowFolders = "";
@@ -65,7 +65,7 @@ namespace TelegramBot
             
         public static List<string> GetListStorages(int idUser, SQLiteConnection conn)
         {
-            var namesStorages = new List<string> {"<- Back"};
+            var namesStorages = new List<string> {"Назад"};
             conn.Open();
             var sqlToShowFolders = "";
             sqlToShowFolders = $"SELECT Name FROM Storage WHERE idUser = {idUser}";
@@ -272,7 +272,7 @@ namespace TelegramBot
             var shareKey = Funcs.GetNewShareKey(Program.Conn);
             SQLLiteDB.SQLiteDeleteOrInsert($"INSERT INTO Storage (Name, idUser, idShared) VALUES(\"{name + " (Shared)"}\", {idUser}, \"{shareKey}\");", Program.Conn);
 
-            //Add folders and files
+            //Создание папкиs and files
             var idStorageOld = Convert.ToInt32(SQLLiteDB.SQLiteSelect($"SELECT id FROM storage WHERE idShared = \"{message.Text}\"", Program.Conn));
             sqlKey = $"Select Name FROM Folders WHERE idStorage = \"{idStorageOld}\"";
             command = new SQLiteCommand(sqlKey, conn);

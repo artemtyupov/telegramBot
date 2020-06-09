@@ -29,13 +29,13 @@ namespace TelegramBot
             },
             new[] 
             {
-                InlineKeyboardButton.WithCallbackData("Rename folder"),
-                InlineKeyboardButton.WithCallbackData("Show folders"),
+                InlineKeyboardButton.WithCallbackData("Переименовать папку"),
+                InlineKeyboardButton.WithCallbackData("Показать папки"),
             },
             new[]
             {
-                InlineKeyboardButton.WithCallbackData("<- Back"),
-                InlineKeyboardButton.WithCallbackData("Share storage"),
+                InlineKeyboardButton.WithCallbackData("Назад"),
+                InlineKeyboardButton.WithCallbackData("Поделиться хранилищем"),
             }
         });
 
@@ -73,10 +73,11 @@ namespace TelegramBot
                 switch (message.Text.Split(' ').First())
                 {
                     case "/help":
-                        const string usage = @"Usage:\n
-                                               /start - to start\n
-                                               /help - to help\n
-                                               /fson, /fsoff - to on/off filesystem(only for Windows).\n";
+                        const string usage = @"Использование:
+/start - для начала работы
+/help - для получения информации о доступных командах
+/fson, /fsoff - для включения\выключения режима виртуальной файловой системы(только для ОС Windows).
+/getFS - для получения исполняемого файла, с помощью котого работает режим виртуальной файловой системы.";
 
                         await Bot.SendTextMessageAsync(
                             message.Chat.Id,
@@ -117,16 +118,17 @@ namespace TelegramBot
                             FSState = true;
                             await Bot.SendTextMessageAsync(
                             message.Chat.Id,
-                            "Succsessfully. Disk M:/ mounted.\n" +
-                            "All your storages available there.\n" +
-                            "After completion, send storage rar archive in chat, for save all changes.\n" +
-                            "After these write command /fsoff \n");
+                            "Успешно. Диск M:/ монтирован.\n" +
+                            "Все ваши хранилище доступны там.\n" +
+                            "После завершения, отправьте архив storage для сохранения изменений.\n" +
+                            "После этого не забудьте использовать команду /fsoff \n" +
+                            "Для дополнительной информации используйте команду /help");
                         }
                         else
                         {
                             await Bot.SendTextMessageAsync(
                             message.Chat.Id,
-                            "Error: working only for Windows:");
+                            "Ошибка: доступно только для ОС Windows:");
                         }
                         break;
 
@@ -138,13 +140,13 @@ namespace TelegramBot
 
                             await Bot.SendTextMessageAsync(
                             message.Chat.Id,
-                            "Succsessfully. Disk M:/ unmounted.");
+                            "Успешно. Диск M:/ отмонтирован.");
                         }
                         else
                         {
                             await Bot.SendTextMessageAsync(
                             message.Chat.Id,
-                            "Error: working only for Windows:");
+                            "Ошибка: доступно только для ОС Windows:");
                         }
                         break;
 
@@ -160,11 +162,23 @@ namespace TelegramBot
                             Conn.Open();
                             await Bot.SendTextMessageAsync(
                                 message.Chat.Id,
-                                "\n Choose action:",
+                                "\n Выберите действие:",
                                 replyMarkup: context.GetInlineKeyboardFromContext(Funcs.GetIdUserFromUsername(message.From.Username, Conn)));
                             Conn.Close();
                         }
                         catch { }
+                        break;
+
+                    case "/getFS":
+                        var dir_filename = "C://Users//Artem//Desktop//Bot//TelegramBot//TelegramBotFS//TelegramBotFS//bin//Debug//TelegramBotFS.exe";
+                        using (FileStream stream = File.OpenRead(dir_filename))
+                        {
+                            InputOnlineFile file = new InputOnlineFile(stream, "TelegramBotFS.exe");
+
+                            var x = stream.Length;
+                            if (x != 0)
+                                await Bot.SendDocumentAsync(message.Chat.Id, file);
+                        }
                         break;
 
                     default:
@@ -186,8 +200,9 @@ namespace TelegramBot
                     if (message.Type != MessageType.Document)
                         await Bot.SendTextMessageAsync(
                                 message.Chat.Id,
-                                "\n FS mode on." +
-                                "\n Please sent storage rar archive");
+                                "\n Режим виртуальной файловой системы еще включен." +
+                                "\n Отправьте пожалуйста архив с хранилищем storage." +
+                                "\n Для дополнительной информации введите команду /help");
                     else
                     {
 
@@ -198,7 +213,6 @@ namespace TelegramBot
                         WebRequest request = WebRequest.Create($"https://api.telegram.org/bot{Token}/getFile?file_id={idFile}");
                         request.Credentials = CredentialCache.DefaultCredentials;
                         HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-                        Console.WriteLine(response.StatusDescription);
                         Stream dataStream = response.GetResponseStream();
                         StreamReader reader = new StreamReader(dataStream);
                         string responseFromServer = reader.ReadToEnd();
@@ -220,7 +234,6 @@ namespace TelegramBot
                                 {
                                     if (!reader1.Entry.IsDirectory)
                                     {
-                                        Console.WriteLine(reader1.Entry.Key);
                                         reader1.WriteEntryToDirectory(root_path, new ExtractionOptions() { ExtractFullPath = true, Overwrite = true });
                                     }
                                 }
@@ -266,6 +279,10 @@ namespace TelegramBot
                         case 3:
                             act = EnumActions.EActions.CreateFolder;
                             break;
+
+                        case 6:
+                            act = EnumActions.EActions.AddData;
+                            break;
                     }
                 }
                 else
@@ -286,6 +303,10 @@ namespace TelegramBot
                         case 14:
                         case 3:
                             act = EnumActions.EActions.DeleteFolder;
+                            break;
+
+                        case 6:
+                            act = EnumActions.EActions.DeleteData;
                             break;
                     }
                 }
@@ -373,9 +394,10 @@ namespace TelegramBot
                 var dir_filename = Program.root_path + "\\storage\\" + name;
                 using (FileStream stream = File.OpenRead(dir_filename))
                 {
+                    InputOnlineFile file_to_send = new InputOnlineFile(stream, name);
                     var x = stream.Length;
                     if (x != 0)
-                        await Bot.SendDocumentAsync(msg.Chat.Id, stream);
+                        await Bot.SendDocumentAsync(msg.Chat.Id, file_to_send);
                 }
 
                 Program.Conn.Open();

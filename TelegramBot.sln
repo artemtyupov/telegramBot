@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TelegramBot", "TelegramBot\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{0870EA91-4C0C-470A-AF69-64034E7BEE5E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TelegramBotFS", "XakepFS-master\XakepFS\TelegramBotFS.csproj", "{9D9C0B3E-E618-45F0-AE1D-D87C0C597805}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TelegramBotFS", "TelegramBotFS\TelegramBotFS\TelegramBotFS.csproj", "{9D9C0B3E-E618-45F0-AE1D-D87C0C597805}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

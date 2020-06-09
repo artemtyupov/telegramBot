@@ -26,6 +26,7 @@ namespace TelegramBot
             GetData = 12,
             AddData = 13,
             CreateFolderInFolder = 14,
+            DeleteData = 15,
         }
 
         public static EActions GetEnumActionFromString(string action)
@@ -33,59 +34,39 @@ namespace TelegramBot
             EActions res = EActions.Unknown;
             switch (action)
             {
-                /*case "Create storage":
-                    res = EActions.CreateStorage;
-                    break;
-
-                case "Delete storage":
-                    res = EActions.DeleteStorage;
-                    break;*/
-
-                case "Rename storage":
+                case "Переименовать хранилище":
                     res = EActions.RenameStorage;
                     break;
 
-                case "Show storage's":
+                case "Показать хранилища":
                     res = EActions.ShowStorage;
                     break;
 
-                case "Create folder":
-                    res = EActions.CreateFolder;
-                    break;
-
-                //case "Delete folder":
-                //    res = EActions.DeleteFolder;
-                //    break;
-
-                case "Rename folder":
+                case "Переименовать папку":
                     res = EActions.RenameFolder;
                     break;
 
-                case "Show folders":
+                case "Показать папки":
                     res = EActions.ShowFolder;
                     break;
 
-                case "Add data":
-                    res = EActions.AddData;
-                    break;
-
-                case "Get data":
+                case "Получение файла":
                     res = EActions.GetData;
                     break;
 
-                case "<- Back":
+                case "Назад":
                     res = EActions.Back;
                     break;
 
-                case "Share storage":
+                case "Поделиться хранилищем":
                     res = EActions.ShareStorage;
                     break;
 
-                case "Get shared storage":
+                case "Получение приватного хранилища":
                     res = EActions.GetSharedStorage;
                     break;
 
-                case "Add folder":
+                case "Создание папки":
                     res = EActions.CreateFolderInFolder;
                     break;
             }
@@ -98,53 +79,57 @@ namespace TelegramBot
             switch (action)
             {
                 case EActions.CreateStorage:
-                    res = "Enter new storage name: ";
+                    res = "Введите название нового хранилища:";
                     break;
 
                 case EActions.DeleteStorage:
-                    res = "Choose storage to delete";
+                    res = "Выберите хранилище для удаления:";
                     break;
 
                 case EActions.RenameStorage:
-                    res = "Choose storage to rename";
+                    res = "Выберите хранилище для переименования:";
                     break;
 
                 case EActions.ShowStorage:
-                    res = "Choose storage:";
+                    res = "Выберите хранилище:";
                     break;
 
                 case EActions.CreateFolder:
                 case EActions.CreateFolderInFolder:
-                    res = "Enter new folder name: ";
+                    res = "Выберите новое имя папки:";
                     break;
 
                 case EActions.DeleteFolder:
-                    res = "Choose to delete folder";
+                    res = "Выберите папку для удаления:";
                     break;
 
                 case EActions.RenameFolder:
-                    res = "Choose to rename folder";
+                    res = "Выберите папку для переименования:";
                     break;
 
                 case EActions.ShowFolder:
-                    res = "Choose folder:";
+                    res = "Выберите папку:";
                     break;
 
                 case EActions.AddData:
-                    res = "Add some data\n" +
-                        "Please enter the caption, when you add photo(better with extension)";
+                    res = "Добавьте файл\n" +
+                        "Пожалуйста введите название файла с расширением в подпись";
                     break;
 
                 case EActions.GetData:
-                    res = "Choose file";
+                    res = "Выберите файл";
                     break;
 
                 case EActions.Back:
-                    res = "Choose action:";
+                    res = "Выберите действие:";
                     break;
 
                 case EActions.GetSharedStorage:
-                    res = "Enter share key: ";
+                    res = "Введите ключ приватного хранилища:";
+                    break;
+
+                case EActions.DeleteData:
+                    res = "Выберите файл для удаления:";
                     break;
             }
             return res;
@@ -201,6 +186,10 @@ namespace TelegramBot
 
                 case EActions.CreateFolderInFolder:
                     res = new CCreateFolderInFolderState();
+                    break;
+
+                case EActions.DeleteData:
+                    res = new CDeleteDataState();
                     break;
             }
             return res;

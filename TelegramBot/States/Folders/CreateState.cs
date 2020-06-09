@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Telegram.Bot.Types.ReplyMarkups;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -19,8 +19,8 @@ namespace TelegramBot
             Program.Conn.Close();
             await Bot.SendTextMessageAsync(
                 message.Chat.Id,
-                "Folder is created. \n" +
-                "Choose action:",
+                "Папка создана. \n" +
+                "Выберите действие:",
                 replyMarkup: Program.InlKey);
         }
 

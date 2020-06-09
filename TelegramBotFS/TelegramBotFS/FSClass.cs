@@ -7,6 +7,9 @@ using System.Text;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using DokanNet;
+using System.Net;
+using SharpCompress.Readers;
+using SharpCompress.Common;
 using FileAccess = DokanNet.FileAccess;
 
 namespace TelegramBotFS
@@ -41,6 +44,7 @@ namespace TelegramBotFS
         public NtStatus CreateFile(string fileName, FileAccess access, FileShare share, FileMode mode, FileOptions options, FileAttributes attributes, IDokanFileInfo info)
         {
             var filePath = "";
+            var res_from_create = false;
             if (fileName == "\\")
             {
                 return NtStatus.Success;
@@ -51,8 +55,7 @@ namespace TelegramBotFS
                 if (FSTree.GetFSObject(fileName) == null)
                 {
                     var gn = GenerateName(fileName);
-                    File.Create(Program.root_path + "\\storage" + gn);
-                    FSTree.CreateFile(fileName, gn);
+                    FSTree.CreateFile(fileName, gn, true);
                     FSTree.AddFileInDB(fileName);
                     return NtStatus.Success;
                 }
@@ -78,13 +81,12 @@ namespace TelegramBotFS
                         catch (IOException)
                         {
                         }
-                        Directory.CreateDirectory(filePath);
                         FSTree.CreateDirectory(fileName, gn);
                         return NtStatus.Success;
                     }
                     if (File.Exists(filePath)) return NtStatus.ObjectNameCollision;
-                    File.Create(filePath);
-                    FSTree.CreateFile(fileName, gn);
+                    res_from_create = true;
+                    FSTree.CreateFile(fileName, gn, true);
                     FSTree.AddFileInDB(fileName);
                 }
                 else
@@ -141,7 +143,7 @@ namespace TelegramBotFS
 
                 try
                 {
-                    pathExists = (Directory.Exists(filePath) || File.Exists(filePath));
+                    pathExists = (Directory.Exists(filePath) || File.Exists(filePath)) || res_from_create;
                     pathIsDirectory = pathExists ? File.GetAttributes(filePath).HasFlag(FileAttributes.Directory) : false;
                 }
                 catch (IOException)
@@ -200,13 +202,11 @@ namespace TelegramBotFS
                                 catch (IOException)
                                 {
                                 }
-                                Directory.CreateDirectory(filePath);
                                 FSTree.CreateDirectory(fileName, gn);
                                 return NtStatus.Success;
                             }
                             if (File.Exists(filePath)) return NtStatus.ObjectNameCollision;
-                            File.Create(filePath);
-                            FSTree.CreateFile(fileName, gn);
+                            FSTree.CreateFile(fileName, gn, true);
                             FSTree.AddFileInDB(fileName);
                         }
                         break;
@@ -363,7 +363,78 @@ namespace TelegramBotFS
             freeBytesAvailable = new DriveInfo("C:\\").AvailableFreeSpace;
             totalNumberOfFreeBytes = new DriveInfo("C:\\").TotalFreeSpace;
             totalNumberOfBytes = new DriveInfo("C:\\").TotalSize;
+
+            // 1.
+            // Get array of all file names.
+            string[] a = Directory.GetFiles(Program.root_path + "//storage", "*.*");
+
+            // 2.
+            // Calculate total bytes of all files in a loop.
+            long b = 0;
+            foreach (string name in a)
+            {
+                // 3.
+                // Use FileInfo to get length of each file.
+                FileInfo info1 = new FileInfo(name);
+                b += info1.Length;
+            }
+            var all_space = totalNumberOfFreeBytes;
+            var free_space = all_space - b;
+
+            freeBytesAvailable = free_space;
+            totalNumberOfFreeBytes = free_space;
+            totalNumberOfBytes = all_space;
+
             return NtStatus.Success;
+        }
+
+        public void DownloadFileFromTelegram(string filename)
+        {
+            string[] elements = filename.Split("\\".ToCharArray());
+            if (elements.Length <= 3)
+                return;
+
+            string _fname = elements[elements.Length - 1];
+            Program.Conn.Open();
+            var idStorage = Convert.ToInt32(SQLLiteDB.Select($"SELECT id FROM Storage WHERE Name = \"{elements[1]}\"", Program.Conn));
+            var idFolder = Convert.ToInt32(SQLLiteDB.Select($"SELECT id FROM Folders WHERE Name = \"{elements[2]}\" and idStorage = {idStorage}", Program.Conn));
+            var idLastFolder = idFolder;
+            for (int i = 3; i <= elements.Length - 2; i++)
+            {
+                idLastFolder = Convert.ToInt32(SQLLiteDB.Select($"SELECT id FROM Folders WHERE Name = \"{elements[i]}\" and idFolder = {idLastFolder} and idStorage = {idStorage}", Program.Conn));
+            }
+
+            var idFileAPI =SQLLiteDB.Select($"SELECT idFileAPI FROM Files WHERE Name = \"{_fname}\" and idFolder = {idLastFolder}", Program.Conn);
+            Program.Conn.Close();
+
+            ServicePointManager.Expect100Continue = true;
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+            WebRequest request = WebRequest.Create($"https://api.telegram.org/bot{Program.Token}/getFile?file_id={idFileAPI}");
+            request.Credentials = CredentialCache.DefaultCredentials;
+            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+            Stream dataStream = response.GetResponseStream();
+            StreamReader reader = new StreamReader(dataStream);
+            string responseFromServer = reader.ReadToEnd();
+            reader.Close();
+            dataStream.Close();
+            response.Close();
+            var arr = responseFromServer.Split('\"');
+            foreach (var item in arr)
+            {
+                if (item.Contains("documents"))
+                {
+                    request = WebRequest.Create($"https://api.telegram.org/file/bot{Program.Token}/{item}");
+                    response = (HttpWebResponse)request.GetResponse();
+                    dataStream = response.GetResponseStream();
+                    FSTree.DeleteFSObject(filename);
+                    var gn = GenerateName(filename);
+                    FSTree.CreateFile(filename, gn, false);
+                    var new_obj = FSTree.GetFSObject(filename);
+
+                    WebClient webClient = new WebClient();
+                    webClient.DownloadFileAsync(new Uri($"https://api.telegram.org/file/bot{Program.Token}/{item}"), Program.root_path + "\\storage" + new_obj.DataLocation);
+                }
+            }
         }
 
         public NtStatus GetFileInformation(string fileName, out FileInformation fileInfo, IDokanFileInfo info)
@@ -388,6 +459,10 @@ namespace TelegramBotFS
 
             }
             else if (!FSTree._fstree[o.Parent].IsDirectory) return NtStatus.Error;
+
+            if (o.DataLocation == "")
+                DownloadFileFromTelegram(fileName);
+
             fileInfo.Attributes = o.Attributes;
             fileInfo.CreationTime = o.CreatedTime;
             fileInfo.FileName = o.Name;
@@ -446,12 +521,7 @@ namespace TelegramBotFS
 
         public NtStatus ReadFile(string fileName, byte[] buffer, out int bytesRead, long offset, IDokanFileInfo info)
         {
-            string[] elements = fileName.Split("\\".ToCharArray());
-            string _fname = elements[elements.Length - 1];
-            Program.Conn.Open();
-            string sql_file_id = $"SELECT idFileAPI FROM Files WHERE Name = \"{_fname}\"";//ЗАЧЕМ
-            var reader = SQLLiteDB.SelectReader(sql_file_id, Program.Conn);
-            Program.Conn.Close();
+            
 
             //Этот метод - просто копипаст из другого проекта. Могу сказать только то, что он работает.
             bytesRead = 0;
@@ -464,7 +534,6 @@ namespace TelegramBotFS
                 }
                 else
                 {
-                    bytesRead = 0;
                     return NtStatus.ObjectNameNotFound;
                 }
                 bool success = false;

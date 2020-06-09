@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Telegram.Bot.Types.ReplyMarkups;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -41,7 +41,7 @@ namespace TelegramBot
                 {
                     await Bot.SendTextMessageAsync(
                         test,
-                        "Your file",
+                        "Ваш файл",
                         replyToMessageId: idMessage,
                         replyMarkup: InlineKeyboard);
                 }
@@ -53,7 +53,7 @@ namespace TelegramBot
                         idMessage);
                     await Bot.SendTextMessageAsync(
                         callbackQuery.Message.Chat.Id,
-                        "Your file",
+                        "Ваш файл",
                         replyMarkup: InlineKeyboard);
 
                 }

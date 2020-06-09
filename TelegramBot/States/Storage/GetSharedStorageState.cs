@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Telegram.Bot.Types.ReplyMarkups;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -16,12 +16,12 @@ namespace TelegramBot
             },
             new[] // first row
             {
-                InlineKeyboardButton.WithCallbackData("Rename storage"),
-                InlineKeyboardButton.WithCallbackData("Show storage's"),
+                InlineKeyboardButton.WithCallbackData("Переименовать хранилище"),
+                InlineKeyboardButton.WithCallbackData("Показать хранилища"),
             },
             new[] // second row
             {
-                InlineKeyboardButton.WithCallbackData("Get shared storage"),
+                InlineKeyboardButton.WithCallbackData("Получение приватного хранилища"),
             }
         });
 
@@ -37,8 +37,8 @@ namespace TelegramBot
                 Funcs.ShareProcess(message, Program.Conn);
                 await Bot.SendTextMessageAsync(
                     message.Chat.Id,
-                    "Storage added. \n" +
-                    "Choose action:",
+                    "Хранилище добавлено. \n" +
+                    "Выберите действие:",
                     replyMarkup: InlineKeyboard);
             }
             else
@@ -47,8 +47,8 @@ namespace TelegramBot
                 await Bot.DeleteMessageAsync(message.Chat.Id, message.MessageId);
                 await Bot.SendTextMessageAsync(
                 message.Chat.Id,
-                "Key is unknown. \n" +
-                "Choose action:",
+                "Неизвестный ключ. \n" +
+                "Выберите действие:",
                 replyMarkup: InlineKeyboard);
             }
         }
@@ -60,7 +60,7 @@ namespace TelegramBot
                 await Bot.DeleteMessageAsync(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId);
                 await Bot.SendTextMessageAsync(
                     callbackQuery.Message.Chat.Id,
-                    $"Enter share key:");
+                    $"Введите приватный ключ:");
             }
             catch { }
         }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Telegram.Bot.Types.ReplyMarkups;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -20,12 +20,12 @@ namespace TelegramBot
             },
             new[] 
             {
-                InlineKeyboardButton.WithCallbackData("Rename storage"),
-                InlineKeyboardButton.WithCallbackData("Show storage's"),
+                InlineKeyboardButton.WithCallbackData("Переименовать хранилище"),
+                InlineKeyboardButton.WithCallbackData("Показать хранилища"),
             },
             new[] 
             {
-                InlineKeyboardButton.WithCallbackData("Get shared storage"),
+                InlineKeyboardButton.WithCallbackData("Получение приватного хранилища"),
             }
         });
 
@@ -38,8 +38,8 @@ namespace TelegramBot
             Program.Conn.Close();
             await Bot.SendTextMessageAsync(
                 message.Chat.Id,
-                "Storage is created. \n" +
-                "Choose action:",
+                "Хранилище создано. \n" +
+                "Выберите действие:",
                 replyMarkup: InlineKeyboard);
         }
 

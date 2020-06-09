@@ -1,4 +1,4 @@
-using Telegram.Bot.Types.ReplyMarkups;
+﻿using Telegram.Bot.Types.ReplyMarkups;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using System;
@@ -45,24 +45,11 @@ namespace TelegramBot
             var idFolder = Convert.ToInt32(SQLLiteDB.SQLiteSelect($"SELECT id FROM Folders WHERE name = \"{Program._selectedButton}\"", Program.Conn));
             Program.Conn.Close();
             System.Collections.Generic.List<string> buttonItem = Funcs.GetListFolders(idUser, idFolder, Program.Conn);
-            buttonItem.Insert(0, "Add data");
-            buttonItem.Insert(0, "Get data");
-            buttonItem.Insert(0, "Add folder");
+            buttonItem.Insert(0, "+");
+            buttonItem.Insert(1, "-");
+            buttonItem.Insert(2, "Получение файла");
+            buttonItem.Insert(3, "Создание папки");
             InlineKeyboard = new InlineKeyboardMarkup(Funcs.GetInlineKeyboard(buttonItem.ToArray()));
-            //InlineKeyboard = new InlineKeyboardMarkup(new[]
-            //{
-            //    new[] // first row
-            //    {
-            //        InlineKeyboardButton.WithCallbackData("<- Back"),
-            //        InlineKeyboardButton.WithCallbackData("Add data"),
-            //        InlineKeyboardButton.WithCallbackData("Get data"),
-            //    },
-            //     new[] // second row
-            //    {
-            //        InlineKeyboardButton.WithCallbackData("Add folder"),
-
-            //    },
-            //});
         }
         
         public void ActionMsg(TelegramBotClient Bot, Message message){}
@@ -79,7 +66,7 @@ namespace TelegramBot
                 await Bot.DeleteMessageAsync(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId);
                 await Bot.SendTextMessageAsync(
                     callbackQuery.Message.Chat.Id,
-                    "Choose action:",
+                    "Выберите действие:",
                     replyMarkup: InlineKeyboard);
             }
             catch { }

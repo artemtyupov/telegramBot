@@ -9,7 +9,7 @@ namespace TelegramBot
     {
         private static readonly InlineKeyboardMarkup InlineKeyboard = Program.InlKey;
 
-        public int getID() { return 15; }
+        public int getID() { return 16; }
 
         public async void ActionMsg(TelegramBotClient Bot, Message message)
         {
@@ -20,8 +20,8 @@ namespace TelegramBot
             Program.Conn.Close();
             await Bot.SendTextMessageAsync(
                 message.Chat.Id,
-                "Folder is created. \n" +
-                "Choose action:",
+                "Папка создана. \n" +
+                "Выберите действие:",
                 replyMarkup: Program.InlKey);
         }
 

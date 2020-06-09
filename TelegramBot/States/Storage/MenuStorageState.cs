@@ -1,4 +1,4 @@
-using Telegram.Bot.Types.ReplyMarkups;
+﻿using Telegram.Bot.Types.ReplyMarkups;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
@@ -15,12 +15,12 @@ namespace TelegramBot
             },
             new[] // first row
             {
-                InlineKeyboardButton.WithCallbackData("Rename storage"),
-                InlineKeyboardButton.WithCallbackData("Show storage's"),
+                InlineKeyboardButton.WithCallbackData("Переименовать хранилище"),
+                InlineKeyboardButton.WithCallbackData("Показать хранилища"),
             },
             new[] // second row
             {
-                InlineKeyboardButton.WithCallbackData("Get shared storage"),
+                InlineKeyboardButton.WithCallbackData("Получение приватного хранилища"),
             }
         });
 
